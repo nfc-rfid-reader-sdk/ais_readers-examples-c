@@ -12,7 +12,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <conio.h>
+#ifndef __linux__
+#	include <conio.h>
+#else
+#endif
 
 //#define DEBUG_ON
 
@@ -70,12 +73,16 @@ int getchar_(void)
 
 	do
 	{
-#ifdef FAST_SELECT
-		selector = getch();
-#else
-		selector = getchar(); // for debug
-#endif
 
+#ifdef __linux__
+		selector = getchar();
+#else // #ifdef __linux__
+#	ifdef FAST_SELECT
+		selector = getch();
+#	else // #ifdef FAST_SELECT
+		selector = getchar(); // for debug
+#	endif // #ifdef FAST_SELECT
+#endif // #ifdef __linux__
 		//		printf("selector= %d | %c\n", selector, selector);
 		//		fflush(stdout);
 
@@ -162,8 +169,14 @@ void time_get(DEV_HND dev)
 	if (dev->status)
 		wr_status("AIS_GetTime()");
 	else
+#ifdef __linux__
+		printf("AIS_GetTime()> %s= %lu | %s", dl_status2str(dev->status),
+				current_time, ctime((time_t *) &current_time));
+
+#else
 		printf("AIS_GetTime()> %s= %I64u | %s", dl_status2str(dev->status),
 				current_time, ctime((time_t *) &current_time));
+#endif
 }
 
 void time_set(DEV_HND dev)
@@ -196,8 +209,13 @@ void print_log_record(DEV_HND dev)
 	for (; i < 7; i++)
 		printf("   ");
 
+#ifdef __linux__
+	printf(" | %10lu | %s", dev->log.timestamp,
+			ctime((time_t *) &dev->log.timestamp));
+#else
 	printf(" | %10I64u | %s", dev->log.timestamp,
 			ctime((time_t *) &dev->log.timestamp));
+#endif
 }
 
 void print_log(DEV_HND dev)
