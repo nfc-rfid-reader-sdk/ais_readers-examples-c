@@ -14,6 +14,23 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 typedef enum E_CARD_ACTION
 {
+	// new card type
+	// new card type
+//	//-----------------
+//	ACTION_REJECTED_BLACKLIST,
+//	ACTION_REJECTED_FOREIGN,
+//
+//	ACTION_UNLOCKED_WHITELIST,
+//
+//	ACTION_REJECTED_BAD_CRC, // known key
+//	ACTION_REJECTED_UNKNOWN_KEY, //
+//	ACTION_REJECTED_AUTH, //
+//	ACTION_REJECTED_OTHER, // ?
+	// new card type
+	// new card type
+	// new card type
+
+
 	// CARD_FOREIGN
 	// strange card - card from different system
 	// BASE> LOG = 0x83 | RTE = 0x00
@@ -73,6 +90,8 @@ typedef enum E_CARD_ACTION
 //	ACTION_BREAK_THROUGH = 0xA2,
 //	ACTION_DOOR_LEFT_OPEN = 0xA3,
 
+	//--------------------
+	ACTION_CARD_UNKNOWN	= 0xFF
 } e_card_action;
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //##############################################################################
@@ -350,6 +369,22 @@ DL_STATUS AIS_GetLog_Set(HND_AIS device, c_string password);
 DL_API
 DL_STATUS AIS_GetLogByIndex(HND_AIS device, c_string password,
 		uint32_t start_index, uint32_t end_index);
+
+/**
+ * Non-blocking function, must pooling DoCmd
+ * get percent of execution
+ *
+ * Must execute AIS_MainLoop() and wait for command_finish become not null (true)
+ *
+ * @param device
+ * @param password
+ * @param time_from
+ * @param time_to
+ * @return
+ */
+DL_API
+DL_STATUS AIS_GetLogByTime(HND_AIS device, c_string password,
+		uint64_t time_from, uint64_t time_to);
 
 // parsed
 DL_API

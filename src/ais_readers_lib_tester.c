@@ -14,13 +14,12 @@
 #include <time.h>
 #ifndef __linux__
 #	include <conio.h>
-#else
 #endif
 
 //#define DEBUG_ON
 
 #ifndef DEBUG_ON
-#	define FAST_SELECT
+//#	define FAST_SELECT
 #endif
 
 #include "ais_readers_lib_tester.h"
@@ -321,6 +320,44 @@ void log_get_by_index(DEV_HND dev)
 
 	printf("AIS_GetLogByIndex(pass: %s | [%d - %d]> %s\n", pass, start_index,
 			end_index, dl_status2str(dev->status));
+
+	DoCmd(dev);
+
+	if (dev->status)
+		return;
+
+	print_log(dev);
+}
+
+void log_get_by_time(DEV_HND dev)
+{
+	uint32_t start_time = 1414670812;
+	uint32_t end_time = 1414670830;
+	int r;
+
+	puts("Read LOG by Time (time-stamp) range:");
+
+	do
+	{
+		printf("Enter time-stamp start: ");
+		fflush(stdout);
+		r = scanf("%u", &start_time);
+		printf("(time-stamp start= %d / %#x) r = %d\n", start_time, start_time,
+				r);
+	} while (r != 1);
+
+	do
+	{
+		printf("Enter time-stamp stop: ");
+		fflush(stdout);
+		r = scanf("%u", &end_time);
+		printf("(time-stamp stop = %d / %#x) r = %d\n", end_time, end_time, r);
+	} while (r != 1);
+
+	dev->status = AIS_GetLogByTime(dev->hnd, pass, start_time, end_time);
+
+	printf("AIS_GetLogByTime(pass: %s | [%d - %d]> %s\n", pass, start_time,
+			end_time, dl_status2str(dev->status));
 
 	DoCmd(dev);
 
@@ -662,12 +699,13 @@ struct S_TEST_MENU
 { 'c', "Close device", close_device, true },
 { 'i', "Device information", get_info, true },
 { 't', "Get time", time_get, true },
-{ 's', "Set time", time_set, true },
+{ 'T', "Set time", time_set, true },
 { 'P', "Set default password in application", password_set_default, false },
 { 'p', "Change password", password_change, true },
 { 'r', "Wait for RTE", rte_listen_DEFTIME, true },
 { 'l', "Get log", log_get, true },
 { 'n', "Get log by Index", log_get_by_index, true },
+{ 'N', "Get log by Time", log_get_by_time, true },
 { 'T', "Test device function", test_device, true },
 { 'w', "White-list Read", whitelist_read, true },
 { 'W', "White-list Write", whitelist_write, true },
