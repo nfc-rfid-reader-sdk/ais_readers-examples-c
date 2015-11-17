@@ -12,14 +12,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#ifndef __linux__
-#	include <conio.h>
-#endif
 
-//#define DEBUG_ON
+#define MENU_COL_WIDTH		45
+#define MENU_COL_NUMBER		3
 
-#ifndef DEBUG_ON
-//#	define FAST_SELECT
+#ifdef __linux__
+#define PRNF_UL	"llu"
+#else
+#define PRNF_UL	"I64u"
 #endif
 
 #include "ais_readers_lib_tester.h"
@@ -72,16 +72,7 @@ int getchar_(void)
 
 	do
 	{
-
-#ifdef __linux__
 		selector = getchar();
-#else // #ifdef __linux__
-#	ifdef FAST_SELECT
-		selector = getch();
-#	else // #ifdef FAST_SELECT
-		selector = getchar(); // for debug
-#	endif // #ifdef FAST_SELECT
-#endif // #ifdef __linux__
 		//		printf("selector= %d | %c\n", selector, selector);
 		//		fflush(stdout);
 
@@ -163,30 +154,56 @@ void password_set_default(DEV_HND dev)
 void time_get(DEV_HND dev)
 {
 	uint64_t current_time = 0;
+	int time_zone;
+	int DST;
+	int offset;
 
-	dev->status = AIS_GetTime(dev->hnd, &current_time);
+	dev->status = AIS_GetTime(dev->hnd, &current_time, &time_zone, &DST,
+			&offset);
 	if (dev->status)
+	{
 		wr_status("AIS_GetTime()");
-	else
-#ifdef __linux__
-		printf("AIS_GetTime()> %s= %lu | %s", dl_status2str(dev->status),
-				current_time, ctime((time_t *) &current_time));
+		return;
+	}
 
-#else
-		printf("AIS_GetTime()> %s= %I64u | %s", dl_status2str(dev->status),
-				current_time, ctime((time_t *) &current_time));
-#endif
+	printf("AIS_GetTime()> %s= (tz= %d | dst= %d | offset= %d)"
+			" GMT:> %" PRNF_UL " | %s", dl_status2str(dev->status), time_zone, DST,
+			offset, current_time, ctime((time_t *) &current_time));
+
+	puts(sys_get_timezone_info());
 }
+
+#define PRNVAR(var) printf( #var " (%d)= %d\n", (int) sizeof(var), (int) var);
 
 void time_set(DEV_HND dev)
 {
+	uint64_t current_time = time(0);
+
 // FIXME: resource busy
 //	puts("Get before Set Time:");
 //	time_get(dev->hnd);
 
-	dev->status = AIS_SetTime(dev->hnd, pass, time(0));
+	puts(sys_get_timezone_info());
 
-	printf("AIS_SetTime(pass:%s)> %s\n", pass, dl_status2str(dev->status));
+	int timezone = -sys_get_timezone() / 3600;
+	int DST = sys_get_daylight();
+	int offset = -sys_get_dstbias() / 3600;
+
+	puts("..........................");
+	puts("You may use this settings:");
+	PRNVAR(timezone);
+	PRNVAR(DST);
+	PRNVAR(offset);
+	puts("..........................");
+
+	// TODO enter from keyboard
+	dev->status = AIS_SetTime(dev->hnd, pass, current_time, timezone, DST,
+			offset);
+
+	printf("AIS_SetTime(pass:%s)> %s | (tz= %d | dst= %d | offset= %d) "
+			"curr= %" PRNF_UL " = %s", pass, dl_status2str(dev->status),
+			timezone, DST, offset, current_time,
+			ctime((time_t *) &current_time));
 
 //	if (!dev->status)
 //	{
@@ -208,13 +225,8 @@ void print_log_record(DEV_HND dev)
 	for (; i < 7; i++)
 		printf("   ");
 
-#ifdef __linux__
-	printf(" | %10lu | %s", dev->log.timestamp,
+	printf(" | %10" PRNF_UL " | %s", dev->log.timestamp,
 			ctime((time_t *) &dev->log.timestamp));
-#else
-	printf(" | %10I64u | %s", dev->log.timestamp,
-			ctime((time_t *) &dev->log.timestamp));
-#endif
 }
 
 void print_log(DEV_HND dev)
@@ -717,24 +729,24 @@ struct S_TEST_MENU
 void print_menu()
 {
 	int i;
-	const char menu_delimit[] =
-#ifdef DEBUG_ON
-			"\t\t";
-#else
-			"\n";
-#endif
 
-	puts("\n");
-	puts("------------------------------");
-	puts("------------------------------");
+	puts("\n------------------------------");
 	puts("Press key - select action :");
-	puts("------------------------------");
 
 	for (i = 0; i < CMD_CNT; ++i)
 	{
-		printf("%c : %s%s", mn[i].selector, mn[i].info, menu_delimit);
+		if (!(i % MENU_COL_NUMBER))
+			printf("\n");
+
+		printf("%c : %s", mn[i].selector, mn[i].info);
+		int slen = strlen(mn[i].info);
+		int rest = MENU_COL_WIDTH - slen;
+		while (rest-- > 0)
+		{
+			putchar(' ');
+		}
 	}
-	puts("------------------------------");
+	puts("\n------------------------------");
 
 	fflush(stdout);
 }
@@ -783,8 +795,6 @@ int main(int argc, char **argv)
 	puts(AIS_GetDLLVersion());
 
 	print_datatype_size();
-
-#warning Start inicijalizacija:
 
 	list_device(0);
 	if (device_active)

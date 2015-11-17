@@ -289,12 +289,33 @@ DL_STATUS AIS_MainLoop(HND_AIS device,
 ///////////////////////////////////////////////////////////////////////////////
 // XXX :: Time functions
 
+/**
+ *
+ * @param device
+ * @param current_time GMT
+ * @param timezone
+ * @param DST			Daylight Saving Time
+ * @param offset
+ * @return
+ */
 DL_API
-DL_STATUS AIS_GetTime(HND_AIS device, uint64_t *current_time);
+DL_STATUS AIS_GetTime(HND_AIS device, uint64_t *current_time, //
+		int *timezone, int *DST, int *offset);
 
+/**
+ *
+ * @param device
+ * @param password
+ * @param time_to_set GMT
+ * @param timezone
+ * @param DST			Daylight Saving Time
+ * @param offset
+ * @return
+ */
 DL_API
 DL_STATUS AIS_SetTime(HND_AIS device, c_string password,
-		const uint64_t time_to_set);
+		const uint64_t time_to_set, //
+		int timezone, int DST, int offset);
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -523,6 +544,23 @@ DL_STATUS AIS_GetFTDIInfo(HND_AIS device, char **ftdi_serial, void **ftdi_handle
 
 ///////////////////////////////////////////////////////////////////////////////
 //// Helper functions
+
+/*****************************************/
+/** Helper function for timezone manipulation **/
+
+DL_API
+long sys_get_timezone(void);
+
+DL_API
+int sys_get_daylight(void);
+
+// _Daylight_savings_bias
+DL_API
+long sys_get_dstbias(void);
+
+DL_API
+c_string sys_get_timezone_info(void);
+/*****************************************/
 
 /**
  * ERROR description
