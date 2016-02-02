@@ -22,6 +22,8 @@
 #define PRNF_UL	"I64u"
 #endif
 
+#define GMT2str(gmt)	asctime(gmtime((time_t *) &gmt))
+
 #include "ais_readers_lib_tester.h"
 #include "device_list.h"
 
@@ -168,7 +170,7 @@ void time_get(DEV_HND dev)
 
 	printf("AIS_GetTime()> %s= (tz= %d | dst= %d | offset= %d)"
 			" GMT:> %" PRNF_UL " | %s", dl_status2str(dev->status), time_zone, DST,
-			offset, current_time, ctime((time_t *) &current_time));
+			offset, current_time, GMT2str(current_time));
 
 	puts(sys_get_timezone_info());
 }
@@ -185,9 +187,9 @@ void time_set(DEV_HND dev)
 
 	puts(sys_get_timezone_info());
 
-	int timezone = -sys_get_timezone() / 3600;
+	int timezone = sys_get_timezone();
 	int DST = sys_get_daylight();
-	int offset = -sys_get_dstbias() / 3600;
+	int offset = sys_get_dstbias();
 
 	puts("..........................");
 	puts("You may use this settings:");
@@ -201,9 +203,8 @@ void time_set(DEV_HND dev)
 			offset);
 
 	printf("AIS_SetTime(pass:%s)> %s | (tz= %d | dst= %d | offset= %d) "
-			"curr= %" PRNF_UL " = %s", pass, dl_status2str(dev->status),
-			timezone, DST, offset, current_time,
-			ctime((time_t *) &current_time));
+			"GMT= %" PRNF_UL " = %s", pass, dl_status2str(dev->status),
+			timezone, DST, offset, current_time, GMT2str(current_time));
 
 //	if (!dev->status)
 //	{
@@ -226,7 +227,7 @@ void print_log_record(DEV_HND dev)
 		printf("   ");
 
 	printf(" | %10" PRNF_UL " | %s", dev->log.timestamp,
-			ctime((time_t *) &dev->log.timestamp));
+			GMT2str(dev->log.timestamp));
 }
 
 void print_log(DEV_HND dev)
@@ -790,7 +791,8 @@ int menu_switch(void)
 
 int main(int argc, char **argv)
 {
-	puts("Tester for 'ais_readers' dynamic library");
+	puts("Tester for 'ais_readers' dynamic library "
+			"version 4.5.4 and later");
 
 	puts(AIS_GetDLLVersion());
 

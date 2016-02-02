@@ -1,6 +1,8 @@
 /*
  * ais_readers.h
  *
+ * library version : 4.5.4
+ *
  *  Created on: 04.07.2011.
  *      Author: SrkoS
  */
@@ -292,10 +294,10 @@ DL_STATUS AIS_MainLoop(HND_AIS device,
 /**
  *
  * @param device
- * @param current_time GMT
- * @param timezone
- * @param DST			Daylight Saving Time
- * @param offset
+ * @param current_time	GMT timestamp
+ * @param timezone		Seconds west of GMT
+ * @param DST			is Daylight Saving Time used (If daylight-saving time is ever in use.)
+ * @param offset		Seconds west of GMT if Daylight Saving Time used
  * @return
  */
 DL_API
@@ -306,10 +308,10 @@ DL_STATUS AIS_GetTime(HND_AIS device, uint64_t *current_time, //
  *
  * @param device
  * @param password
- * @param time_to_set GMT
- * @param timezone
- * @param DST			Daylight Saving Time
- * @param offset
+ * @param time_to_set	GMT timestamp
+ * @param timezone		Seconds west of GMT
+ * @param DST			is Daylight Saving Time used (If daylight-saving time is ever in use.)
+ * @param offset		Seconds west of GMT if Daylight Saving Time used
  * @return
  */
 DL_API
@@ -546,8 +548,11 @@ DL_STATUS AIS_GetFTDIInfo(HND_AIS device, char **ftdi_serial, void **ftdi_handle
 //// Helper functions
 
 /*****************************************/
-/** Helper function for timezone manipulation **/
+/** Helper function for time-zone manipulation **/
 
+/**
+ * return Seconds west of GMT
+ */
 DL_API
 long sys_get_timezone(void);
 
