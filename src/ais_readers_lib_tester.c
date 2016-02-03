@@ -17,9 +17,13 @@
 #define MENU_COL_NUMBER		3
 
 #ifdef __linux__
-#define PRNF_UL	"llu"
+#	if __x86_64__
+#		define PRNF_UL	"lu"
+#	else
+#		define PRNF_UL	"llu"
+#	endif
 #else
-#define PRNF_UL	"I64u"
+#	define PRNF_UL	"I64u"
 #endif
 
 #define GMT2str(gmt)	asctime(gmtime((time_t *) &gmt))
