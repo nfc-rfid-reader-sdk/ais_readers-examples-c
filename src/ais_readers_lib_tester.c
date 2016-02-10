@@ -16,14 +16,20 @@
 #define MENU_COL_WIDTH		45
 #define MENU_COL_NUMBER		3
 
+// printf format for unsigned long long ( time_t )
 #ifdef __linux__
 #	if __x86_64__
-#		define PRNF_UL	"lu"
+#		define PRNF_TIME_T	"lu"
 #	else
-#		define PRNF_UL	"llu"
+#		define PRNF_TIME_T	"llu"
 #	endif
+#elif defined __WIN64
+#	define PRNF_TIME_T	"I64u"
+//#	define PRNF_TIME_T	"llu"
+#elif defined __WIN32
+#	define PRNF_TIME_T	"lu"
 #else
-#	define PRNF_UL	"I64u"
+#	define PRNF_TIME_T "lu"
 #endif
 
 #define GMT2str(gmt)	asctime(gmtime((time_t *) &gmt))
@@ -173,10 +179,12 @@ void time_get(DEV_HND dev)
 	}
 
 	printf("AIS_GetTime()> %s= (tz= %d | dst= %d | offset= %d)"
-			" GMT:> %" PRNF_UL " | %s", dl_status2str(dev->status), time_zone, DST,
+			" GMT:> %" PRNF_TIME_T " | %s", dl_status2str(dev->status), time_zone, DST,
 			offset, current_time, GMT2str(current_time));
 
+#ifndef DEV_MIN_PRINTS
 	puts(sys_get_timezone_info());
+#endif
 }
 
 #define PRNVAR(var) printf( #var " (%d)= %d\n", (int) sizeof(var), (int) var);
@@ -189,7 +197,9 @@ void time_set(DEV_HND dev)
 //	puts("Get before Set Time:");
 //	time_get(dev->hnd);
 
+#ifndef DEV_MIN_PRINTS
 	puts(sys_get_timezone_info());
+#endif
 
 	int timezone = sys_get_timezone();
 	int DST = sys_get_daylight();
@@ -207,7 +217,7 @@ void time_set(DEV_HND dev)
 			offset);
 
 	printf("AIS_SetTime(pass:%s)> %s | (tz= %d | dst= %d | offset= %d) "
-			"GMT= %" PRNF_UL " = %s", pass, dl_status2str(dev->status),
+			"GMT= %" PRNF_TIME_T " = %s", pass, dl_status2str(dev->status),
 			timezone, DST, offset, current_time, GMT2str(current_time));
 
 //	if (!dev->status)
@@ -230,7 +240,7 @@ void print_log_record(DEV_HND dev)
 	for (; i < 7; i++)
 		printf("   ");
 
-	printf(" | %10" PRNF_UL " | %s", dev->log.timestamp,
+	printf(" | %10" PRNF_TIME_T " | %s", dev->log.timestamp,
 			GMT2str(dev->log.timestamp));
 }
 
@@ -733,6 +743,8 @@ struct S_TEST_MENU
 
 void print_menu()
 {
+#ifndef DEV_MIN_PRINTS
+
 	int i;
 
 	puts("\n------------------------------");
@@ -754,6 +766,8 @@ void print_menu()
 	puts("\n------------------------------");
 
 	fflush(stdout);
+
+#endif // #ifndef DEV_MIN_PRINTS
 }
 
 int menu_switch(void)
