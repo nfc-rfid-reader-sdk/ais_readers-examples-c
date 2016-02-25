@@ -7,8 +7,10 @@
 #ifndef AIS_READERS_LIB_TESTER_H_
 #define AIS_READERS_LIB_TESTER_H_
 
-#define DL_API_STATIC
 #include <ais_readers.h>
+
+// define in IDE
+//#define DEV_MIN_PRINTS
 
 typedef struct S_LOG
 {
