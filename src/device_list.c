@@ -119,19 +119,30 @@ void get_list_info(void)
 	puts(".");
 
 	device_active = device[0];
-	puts("Device [0] is selected for active");
+	puts("Device [1] is selected for active");
 }
 
 void prepare_list_for_check()
 {
 	DL_STATUS status;
-	int device_type = DL_XRCA;
+	int device_type = DL_BASE_HD;
 	int device_id = 0;
 
 	puts("AIS_List_GetDevicesForCheck() BEFORE / DLL STARTUP");
 	puts(AIS_List_GetDevicesForCheck());
 
 	AIS_List_EraseAllDevicesForCheck();
+
+	puts("TODO: command for enter devices for checking !");
+	puts("Tester try to connect with Base HD devices on addresses 1 and 3");
+
+	device_id = 1;
+
+	status = AIS_List_AddDeviceForCheck(device_type, device_id);
+	printf("AIS_List_AddDeviceForCheck(type: %d, id: %d)> { %s }\n",
+			device_type, device_id, dl_status2str(status));
+
+	device_id = 3;
 
 	status = AIS_List_AddDeviceForCheck(device_type, device_id);
 	printf("AIS_List_AddDeviceForCheck(type: %d, id: %d)> { %s }\n",

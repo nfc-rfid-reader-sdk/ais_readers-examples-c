@@ -13,26 +13,10 @@
 #include <string.h>
 #include <time.h>
 
+#define MINIMAL_LIB_VERSION			"4.6.1"
+
 #define MENU_COL_WIDTH		45
 #define MENU_COL_NUMBER		3
-
-// printf format for unsigned long long ( time_t )
-#ifdef __linux__
-#	if __x86_64__
-#		define PRNF_TIME_T	"lu"
-#	else
-#		define PRNF_TIME_T	"llu"
-#	endif
-#elif defined __WIN64
-#	define PRNF_TIME_T	"I64u"
-//#	define PRNF_TIME_T	"llu"
-#elif defined __WIN32
-#	define PRNF_TIME_T	"lu"
-#else
-#	define PRNF_TIME_T "lu"
-#endif
-
-#define GMT2str(gmt)	asctime(gmtime((time_t *) &gmt))
 
 #include "ais_readers_lib_tester.h"
 #include "device_list.h"
@@ -52,10 +36,10 @@ static c_string prn_format = "%4d |%34s| %5d | %7d | %5d";
 
 static c_string hdr[] =
 {
-  "-----+----------------------------------+-------+---------+-------+--------------------------+------------+--------------------------",
-  " Idx |              action              | RD ID | Card ID | JobNr |    NFC [length] : UID    | Time-stamp |       Date - Time" };
-//"-----+----------------------------------+-------+---------+-------+--------------------------+------------+--------------------------
-//"   0 | [64(0x40):ACTION_CARD_UNLOCKED_5]|    19 |       0 |       | [7]:04:55:19:EA:31:33:80 | 1444738197 | Tue Oct 13 14:09:57 2015
+  "-----+----------------------------------+-------+---------+-------+--------------------------+-------------------------------------------",
+  " Idx |              action              | RD ID | Card ID | JobNr |    NFC [length] : UID    | Time-stamp,      Date - Time" };
+//"-----+----------------------------------+-------+---------+-------+--------------------------+-------------------------------------------
+//"   0 | [64(0x40):ACTION_CARD_UNLOCKED_5]|    19 |       0 |       | [7]:04:55:19:EA:31:33:80 | GMT= 1456233460, Tue Feb 23 13:17:40 2016
 //"   1 |[128(0x80):ACTION_CARD_UNLOCKED_5]|    19 | 1234567 | 12345 | [7]:04:55:19:EA:31:33:80 | 1444738203 | Tue Oct 13 14:10:03 2015
 //"-----+----------------------------------+-------+---------+-------+--------------------------+------------+--------------------------
 
@@ -178,9 +162,9 @@ void time_get(DEV_HND dev)
 		return;
 	}
 
-	printf("AIS_GetTime()> %s= (tz= %d | dst= %d | offset= %d)"
-			" GMT:> %" PRNF_TIME_T " | %s", dl_status2str(dev->status), time_zone, DST,
-			offset, current_time, GMT2str(current_time));
+	printf("AIS_GetTime(dev=%p)> %s= (tz= %d | dst= %d | offset= %d)> %s\n\n",
+			dev->hnd, dl_status2str(dev->status), time_zone, DST, offset,
+			dbg_GMT2str(current_time));
 
 #ifndef DEV_MIN_PRINTS
 	puts(sys_get_timezone_info());
@@ -216,9 +200,9 @@ void time_set(DEV_HND dev)
 	dev->status = AIS_SetTime(dev->hnd, pass, current_time, timezone, DST,
 			offset);
 
-	printf("AIS_SetTime(pass:%s)> %s | (tz= %d | dst= %d | offset= %d) "
-			"GMT= %" PRNF_TIME_T " = %s", pass, dl_status2str(dev->status),
-			timezone, DST, offset, current_time, GMT2str(current_time));
+	printf("AIS_SetTime(pass:%s)> %s | (tz= %d | dst= %d | offset= %d) %s\n",
+			pass, dl_status2str(dev->status), timezone, DST, offset,
+			dbg_GMT2str(current_time));
 
 //	if (!dev->status)
 //	{
@@ -240,8 +224,7 @@ void print_log_record(DEV_HND dev)
 	for (; i < 7; i++)
 		printf("   ");
 
-	printf(" | %10" PRNF_TIME_T " | %s", dev->log.timestamp,
-			GMT2str(dev->log.timestamp));
+	printf(" | %s\n", dbg_GMT2str(dev->log.timestamp));
 }
 
 void print_log(DEV_HND dev)
@@ -708,6 +691,43 @@ void test_device(DEV_HND dev)
 #endif
 }
 
+void dev_activate(unsigned int dev_id)
+{
+	if (dev_id < device_count)
+	{
+		device_active = device[dev_id];
+		printf("Active device [%d] : Handle= %p : (%p)\n", dev_id + 1,
+				device_active->hnd, device_active);
+	}
+	else
+	{
+		printf("No Device %d - Max number of devices= %d\n", dev_id + 1,
+				device_count + 1);
+	}
+}
+void dev_activate_1(DEV_HND dev)
+{
+	dev_activate(0);
+}
+void dev_activate_2(DEV_HND dev)
+{
+	dev_activate(1);
+}
+void dev_activate_3(DEV_HND dev)
+{
+	dev_activate(2);
+}
+void dev_activate_4(DEV_HND dev)
+{
+	dev_activate(3);
+}
+
+void print_menu();
+void print_menu_x(DEV_HND dev)
+{
+	print_menu();
+}
+
 #define CMD_CNT				(sizeof(mn)/sizeof(*mn))
 
 struct S_TEST_MENU
@@ -739,12 +759,15 @@ struct S_TEST_MENU
 { 'b', "Black-list Read", blacklist_read, true },
 { 'B', "Black-list Write", blacklist_write, true },
 { 'L', "Test lights", test_light, true },
+{ 'h', "Help / menu", print_menu_x, false },
+{ '1', "Device 1 activate", dev_activate_1, false },
+{ '2', "Device 2 activate", dev_activate_2, false },
+{ '3', "Device 3 activate", dev_activate_3, false },
+{ '4', "Device 4 activate", dev_activate_4, false },
 };
 
 void print_menu()
 {
-#ifndef DEV_MIN_PRINTS
-
 	int i;
 
 	puts("\n------------------------------");
@@ -766,8 +789,6 @@ void print_menu()
 	puts("\n------------------------------");
 
 	fflush(stdout);
-
-#endif // #ifndef DEV_MIN_PRINTS
 }
 
 int menu_switch(void)
@@ -777,7 +798,9 @@ int menu_switch(void)
 
 	do
 	{
+#ifndef DEV_MIN_PRINTS
 		print_menu();
+#endif // #ifndef DEV_MIN_PRINTS
 
 		selector = getchar_();
 
@@ -804,19 +827,37 @@ int menu_switch(void)
 			}
 		}
 
+		fflush(stdout);
+
 	} while (true);
 }
 
 int main(int argc, char **argv)
 {
-	puts("Tester for 'ais_readers' dynamic library "
-			"version 4.5.4 and later");
+	puts("");
+	printf("Tester for 'ais_readers' dynamic library"
+			"version %s and later", MINIMAL_LIB_VERSION);
 
 	puts(AIS_GetDLLVersion());
 
 	print_datatype_size();
 
 	list_device(0);
+
+#if 0 // TEST
+
+	dev_activate_1(0);
+	open_device(device_active);
+	dev_activate_2(0);
+	open_device(device_active);
+
+	dev_activate_1(0);
+	time_get(device_active);
+	dev_activate_2(0);
+	time_get(device_active);
+
+#else
+
 	if (device_active)
 	{
 		open_device(device_active);
@@ -824,6 +865,8 @@ int main(int argc, char **argv)
 	}
 
 	menu_switch();
+
+#endif
 
 	destroy_devices();
 
