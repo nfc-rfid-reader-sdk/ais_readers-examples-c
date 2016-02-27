@@ -588,6 +588,7 @@ void DoCmd(DEV_HND dev)
 
 void rte_listen(DEV_HND dev, int seconds)
 {
+	int i;
 	time_t stop_time = time(0) + seconds + 1;
 
 	printf("...\n..\n.\nStart listen for RTE %d seconds...\n", seconds);
@@ -595,10 +596,13 @@ void rte_listen(DEV_HND dev, int seconds)
 
 	while (time(0) < stop_time)
 	{
-		MainLoop(dev);
+		for (i = 0; i < device_count; ++i)
+		{
+			MainLoop(device[i]);
 
-		if (dev->status == NO_DEVICES)
-			break;
+//		if (dev->status == NO_DEVICES)
+//			break;
+		}
 	}
 
 	printf("STOP listen for RTE.\n.\n");
