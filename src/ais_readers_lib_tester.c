@@ -834,6 +834,8 @@ int menu_switch(void)
 
 int main(int argc, char **argv)
 {
+	int i;
+
 	puts("");
 	printf("Tester for 'ais_readers' dynamic library"
 			"version %s and later", MINIMAL_LIB_VERSION);
@@ -858,10 +860,10 @@ int main(int argc, char **argv)
 
 #else
 
-	if (device_active)
+	for (i = 0; i < device_count; ++i)
 	{
-		open_device(device_active);
-		time_get(device_active);
+		open_device(device[i]);
+		time_get(device[i]);
 	}
 
 	menu_switch();
