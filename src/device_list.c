@@ -15,16 +15,20 @@ int device_count;
 DEV_HND *device = NULL;
 DEV_HND device_active = NULL;
 
+char tmpstr[512];
+
 void open_device(DEV_HND dev)
 {
+	sprintf(tmpstr, "AIS_Open(%p)", dev->hnd);
 	dev->status = AIS_Open(dev->hnd);
-	wr_status("AIS_Open()");
+	wr_status(tmpstr);
 }
 
 void close_device(DEV_HND dev)
 {
+	sprintf(tmpstr, "AIS_Close(%p)", dev->hnd);
 	dev->status = AIS_Close(dev->hnd);
-	wr_status("AIS_Close()");
+	wr_status(tmpstr);
 }
 
 // device_count
