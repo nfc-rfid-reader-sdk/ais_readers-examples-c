@@ -13,7 +13,7 @@
 #include <string.h>
 #include <time.h>
 
-#define MINIMAL_LIB_VERSION			"4.6.1"
+#define MINIMAL_LIB_VERSION			"4.7.1"
 
 #define MENU_COL_WIDTH		45
 #define MENU_COL_NUMBER		3
@@ -606,12 +606,130 @@ void rte_listen(DEV_HND dev, int seconds)
 	}
 
 	printf("STOP listen for RTE.\n.\n");
-	fflush(stdout);
 }
 
 void rte_listen_DEFTIME(DEV_HND dev)
 {
 	rte_listen(dev, DEFAULT_RTE_TIME);
+}
+
+void get_unread_log_one(DEV_HND dev)
+{
+	uint32_t log_available;
+	int r;
+	bool cont = true;
+
+	void info()
+	{
+		r = AIS_ReadLog_Count(dev->hnd);
+		if (r)
+			printf("AIS_ReadLog_Count()= %d\n", r);
+
+		r = AIS_ReadRTE_Count(dev->hnd);
+		if (r)
+			printf("AIS_ReadRTE_Count()= %d\n", r);
+	}
+
+	void count()
+	{
+		dev->status = AIS_UnreadLOG_Count(dev->hnd, &log_available);
+		if (dev->status)
+		{
+			wr_status("AIS_UnreadLOG_Count()");
+			return;
+		}
+
+		printf("AIS_UnreadLOG_Count()= log_available= %d\n", log_available);
+
+		info();
+	}
+
+	void get()
+	{
+		dev->status = AIS_UnreadLOG_Get(dev->hnd);
+		wr_status("AIS_UnreadLOG_Get()");
+		if (dev->status)
+		{
+			return;
+		}
+
+		info();
+	}
+
+	void ack()
+	{
+		dev->status = AIS_UnreadLOG_Ack(dev->hnd, 1);
+		wr_status("AIS_UnreadLOG_Ack()");
+		if (dev->status)
+		{
+			return;
+		}
+
+		info();
+	}
+
+	void prn_help()
+	{
+		puts("Help: use "
+				"1 or c for count | "
+				"2 or g for get | "
+				"3 or a for ACK\n"
+				"x/X/q/Q : exit from this part");
+	}
+
+	//--------------------------------------------------------------
+
+	do
+	{
+		char ch = getchar();
+
+		switch (ch)
+		{
+		case '1':
+		case 'c':
+
+			count();
+
+			break;
+
+		case '2':
+		case 'g':
+
+			get();
+
+			break;
+
+		case '3':
+		case 'a':
+
+			ack();
+
+			break;
+
+		case 'x':
+		case 'X':
+		case 'q':
+		case 'Q':
+
+			puts("exit from unread log");
+
+			cont = false;
+
+			return;
+
+		case '\n':
+			break; // skip
+
+		default:
+
+			prn_help();
+
+			break;
+		}
+
+		fflush(stdout);
+
+	} while (cont);
 }
 
 void test_light(DEV_HND dev)
@@ -624,7 +742,8 @@ void test_light(DEV_HND dev)
 	c_string hlp = "\n"
 			"Tester Lights : "
 			"g - green master | r - red master || "
-			"G - green slave | r - red slave\n";
+			"G - green slave | r - red slave || "
+			" || x - exit from the light testing\n";
 
 	do
 	{
@@ -647,6 +766,7 @@ void test_light(DEV_HND dev)
 			break;
 
 		case 'x':
+		case 'X':
 		case 27:
 			puts("Exit from test.");
 			return;
@@ -665,6 +785,7 @@ void test_light(DEV_HND dev)
 	} while (true);
 
 }
+
 void print_datatype_size(void)
 {
 	printf("sizeof(bool)= %d\n", (int) sizeof(bool));
@@ -768,6 +889,7 @@ struct S_TEST_MENU
 { '2', "Device 2 activate", dev_activate_2, false },
 { '3', "Device 3 activate", dev_activate_3, false },
 { '4', "Device 4 activate", dev_activate_4, false },
+{ 'u', "Get a unread LOG", get_unread_log_one, true },
 };
 
 void print_menu()
