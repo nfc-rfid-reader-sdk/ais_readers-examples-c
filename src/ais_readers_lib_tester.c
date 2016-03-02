@@ -679,6 +679,8 @@ void get_unread_log_one(DEV_HND dev)
 
 	//--------------------------------------------------------------
 
+	prn_help();
+
 	do
 	{
 		char ch = getchar();
