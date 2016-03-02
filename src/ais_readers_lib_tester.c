@@ -13,7 +13,7 @@
 #include <string.h>
 #include <time.h>
 
-#define MINIMAL_LIB_VERSION			"4.7.1"
+#define MINIMAL_LIB_VERSION			"4.7.2"
 
 #define MENU_COL_WIDTH		45
 #define MENU_COL_NUMBER		3
@@ -646,8 +646,29 @@ void get_unread_log_one(DEV_HND dev)
 
 	void get()
 	{
-		dev->status = AIS_UnreadLOG_Get(dev->hnd);
+		puts("-= PRINT UNREAD LOG =-");
+		puts(hdr[0]);
+		puts(hdr[1]);
+		puts(hdr[0]);
+
+		do
+		{
+			dev->status = AIS_UnreadLOG_Get(dev->hnd, &dev->log.index,
+					&dev->log.action, &dev->log.reader_id, &dev->log.card_id,
+					&dev->log.system_id, dev->log.nfc_uid,
+					&dev->log.nfc_uid_len, &dev->log.timestamp);
+
+			if (dev->status)
+				break;
+
+			print_log_record(dev);
+
+		} while (false);
+
+		puts(hdr[0]);
+
 		wr_status("AIS_UnreadLOG_Get()");
+
 		if (dev->status)
 		{
 			return;
