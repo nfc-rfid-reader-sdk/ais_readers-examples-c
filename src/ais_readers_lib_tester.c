@@ -986,8 +986,8 @@ int main(int argc, char **argv)
 	int i;
 
 	puts("");
-	printf("Tester for 'ais_readers' dynamic library"
-			"version %s and later", MINIMAL_LIB_VERSION);
+	printf("Tester for 'ais_readers' dynamic library "
+			"version %s and later\n", MINIMAL_LIB_VERSION);
 
 	puts(AIS_GetDLLVersion());
 
