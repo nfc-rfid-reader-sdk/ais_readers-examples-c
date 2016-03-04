@@ -13,6 +13,7 @@ extern int device_count;
 extern DEV_HND *device;
 extern DEV_HND device_active;
 
+void edit_device_list(DEV_HND device);
 void list_device(DEV_HND device);
 
 int destroy_devices(void);

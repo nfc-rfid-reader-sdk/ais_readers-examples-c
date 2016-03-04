@@ -67,5 +67,6 @@ void DoCmd(DEV_HND dev);
 
 void wr_status_(DL_STATUS status, const char * pre_msg);
 #define wr_status(pre_msg) wr_status_(dev->status,pre_msg)
+char * get_string(void);
 
 #endif /* AIS_READERS_LIB_TESTER_H_ */

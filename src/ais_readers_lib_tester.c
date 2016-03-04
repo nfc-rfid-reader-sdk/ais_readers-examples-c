@@ -30,9 +30,9 @@ char pass[64] = //
 char new_pass[64] = //
 		"1111";
 
-//---------------------------------------------------------
+//------------------------------------------------------------------
 static c_string prn_format = "%4d |%34s| %5d | %7d | %5d";
-//---------------------------------------------------------
+//------------------------------------------------------------------
 
 static c_string hdr[] =
 {
@@ -43,7 +43,8 @@ static c_string hdr[] =
 //"   1 |[128(0x80):ACTION_CARD_UNLOCKED_5]|    19 | 1234567 | 12345 | [7]:04:55:19:EA:31:33:80 | 1444738203 | Tue Oct 13 14:10:03 2015
 //"-----+----------------------------------+-------+---------+-------+--------------------------+------------+--------------------------
 
-//---------------------------------------------------------
+//------------------------------------------------------------------
+//------------------------------------------------------------------
 void wr_status_(DL_STATUS status, const char * pre_msg)
 {
 	puts(dbg_prn_status(status, pre_msg));
@@ -76,6 +77,36 @@ int getchar_(void)
 
 	return selector;
 }
+
+char * get_string(void)
+{
+	static char buff[4096] = "";
+	char *result;
+	int len;
+
+	do
+	{
+		result = fgets(buff, sizeof(buff), stdin);
+		len = strlen(buff);
+		if (result != NULL && buff[len - 1] == '\n')
+		{
+			buff[len - 1] = '\0';
+			if (len == 1)
+				continue;
+			else
+				break;
+		}
+		else
+		{
+			// handle error
+			puts("Error while getting line. Exit.");
+			return 0;
+		}
+	} while (true);
+
+	return buff;
+}
+//------------------------------------------------------------------
 
 void get_info(DEV_HND dev)
 {
@@ -399,9 +430,7 @@ void whitelist_read(DEV_HND dev)
 
 void whitelist_write(DEV_HND dev)
 {
-	char wl[4096] = "";
-	char *result;
-	int len;
+	char *wl;
 
 	puts("Try to write white-list:");
 	puts("Enter white-list UIDs "
@@ -411,25 +440,12 @@ void whitelist_write(DEV_HND dev)
 	printf("White-list UIDs: ");
 	fflush(stdout);
 
-	do
+	wl = get_string();
+	if (!wl)
 	{
-		result = fgets(wl, sizeof(wl), stdin);
-		len = strlen(wl);
-		if (result != NULL && wl[len - 1] == '\n')
-		{
-			wl[len - 1] = '\0';
-			if (len == 1)
-				continue;
-			else
-				break;
-		}
-		else
-		{
-			// handle error
-			puts("Error while getting line of UIDs. Exit.");
-			return;
-		}
-	} while (true);
+		puts("Error while getting line of UIDs. Exit.");
+		return;
+	}
 
 	dev->status = AIS_Whitelist_Write(dev->hnd, pass, wl);
 	printf("AIS_Whitelist_Write(pass:%s)> %s\n", pass,
@@ -461,34 +477,19 @@ void blacklist_read(DEV_HND dev)
 
 void blacklist_write(DEV_HND dev)
 {
-	char bl[4096] = "";
-	char *result;
-	int len;
+	char *bl;
 
 	puts("Try to write black-list decimal numbers (delimited with anything)");
 	puts("Eg. 2, 102 250;11");
 	printf("Enter Black-list numbers: ");
 	fflush(stdout);
 
-	do
+	bl = get_string();
+	if (!bl)
 	{
-		result = fgets(bl, sizeof(bl), stdin);
-		len = strlen(bl);
-		if (result != NULL && bl[len - 1] == '\n')
-		{
-			bl[len - 1] = '\0';
-			if (len == 1)
-				continue;
-			else
-				break;
-		}
-		else
-		{
-			// handle error
-			puts("Error while getting line of numbers. Exit.");
-			return;
-		}
-	} while (true);
+		puts("Error while getting line of numbers. Exit.");
+		return;
+	}
 
 	dev->status = AIS_Blacklist_Write(dev->hnd, pass, bl);
 	printf("AIS_Blacklist_Write(pass:%s)> %s\n", pass,
@@ -909,6 +910,7 @@ struct S_TEST_MENU
 {
 { 'x', "Exit ( or press ESC )", 0, false },
 { 'q', "List devices", list_device, false },
+{ 'Q', "Edit device list for checking", edit_device_list, false },
 //{ 's', "select device", 0, true },
 { 'o', "Open device", open_device, true },
 { 'c', "Close device", close_device, true },

@@ -6,6 +6,7 @@
  */
 
 #include "device_list.h"
+#include <ais_readers_list.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -137,7 +138,6 @@ void prepare_list_for_check()
 
 	AIS_List_EraseAllDevicesForCheck();
 
-	puts("TODO: command for enter devices for checking !");
 	puts("Tester try to connect with Base HD devices on addresses 1 and 3");
 
 	device_id = 1;
@@ -154,6 +154,81 @@ void prepare_list_for_check()
 
 	puts("AIS_List_GetDevicesForCheck() AFTER LIST UPDATE");
 	puts(AIS_List_GetDevicesForCheck());
+}
+
+void print_available_devices()
+{
+	puts("Look at ais_readers_list.h for Device descriptions");
+
+	puts("Known devices:");
+#define PUTSDEV(device) printf("\t%2d : %s\n", device, #device);
+
+	PUTSDEV(DL_AIS_100);
+	PUTSDEV(DL_AIS_20);
+	PUTSDEV(DL_AIS_30);
+	PUTSDEV(DL_AIS_35);
+	PUTSDEV(DL_AIS_50);
+	PUTSDEV(DL_AIS_110);
+	PUTSDEV(DL_AIS_LOYALITY);
+	PUTSDEV(DL_AIS_37);
+	PUTSDEV(DL_AIS_BMR);
+	PUTSDEV(DL_AIS_BASE_HD);
+	PUTSDEV(DL_XRCA);
+	PUTSDEV(DL_BASE_HD);
+}
+
+void edit_device_list(DEV_HND device) // Parameter is irrelevant
+{
+	DL_STATUS status;
+	int device_type;
+	int device_id;
+	int r;
+	bool list_erased = false;
+
+	puts("");
+	puts("Edit device types for checking...");
+
+	puts("AIS_List_GetDevicesForCheck() ACTUAL List");
+	puts(AIS_List_GetDevicesForCheck());
+
+	puts("Enter device type and then ID for check");
+	print_available_devices();
+
+	for(;;)
+	{
+		printf("Enter device type (0, 1, ... , 28) ('x' for exit): ");
+		fflush(stdout);
+		r = scanf("%d", &device_type);
+		if (!r)
+			break;
+
+		printf("Enter device bus ID (if full duplex then enter 0): ");
+		fflush(stdout);
+		r = scanf("%d", &device_id);
+		if (!r)
+		{
+			fflush(stdin);
+			device_id = 0;
+		}
+
+		if (!list_erased)
+		{
+			AIS_List_EraseAllDevicesForCheck();
+			list_erased = true;
+		}
+		status = AIS_List_AddDeviceForCheck(device_type, device_id);
+		printf("AIS_List_AddDeviceForCheck(type: %d, id: %d)> { %s }\n",
+				device_type, device_id, dl_status2str(status));
+		fflush(stdout);
+	}
+
+	puts("");
+	puts("Finish list edit.");
+	puts("");
+	puts("AIS_List_GetDevicesForCheck() AFTER UPDATE");
+	puts(AIS_List_GetDevicesForCheck());
+
+	fflush(stdin);
 }
 
 void list_device(DEV_HND device) // Parameter is irrelevant
