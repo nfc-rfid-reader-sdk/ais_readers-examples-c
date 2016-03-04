@@ -36,10 +36,13 @@ typedef struct S_DEVICE
 	// event part
 	int RealTimeEvents; // indicate new RealTimeEvent(s)
 	int LogAvailable; // indicate new data in log buffer
+	int LogUnread; //
+	int LogUnread_last; //
 	// command part
 	int cmdResponses; // indicate command finish
 	int cmdPercent; // indicate percent of command execution
 	// status part
+	int DeviceStatus;
 	int TimeoutOccurred; // debug only
 	int Status; // additional status
 

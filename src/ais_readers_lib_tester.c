@@ -13,7 +13,7 @@
 #include <string.h>
 #include <time.h>
 
-#define MINIMAL_LIB_VERSION			"4.7.2"
+#define MINIMAL_LIB_VERSION			"4.8.0"
 
 #define MENU_COL_WIDTH		45
 #define MENU_COL_NUMBER		3
@@ -499,8 +499,10 @@ bool MainLoop(DEV_HND dev)
 {
 	bool print = false;
 
-	dev->status = AIS_MainLoop(dev->hnd, &dev->RealTimeEvents,
-			&dev->LogAvailable, &dev->cmdResponses, &dev->cmdPercent,
+	dev->status = AIS_MainLoop(dev->hnd, //
+			&dev->RealTimeEvents, &dev->LogAvailable, &dev->LogUnread, //
+			&dev->cmdResponses, &dev->cmdPercent, //
+			&dev->DeviceStatus, //
 			&dev->TimeoutOccurred, &dev->Status);
 	if (dev->status)
 	{
@@ -522,6 +524,16 @@ bool MainLoop(DEV_HND dev)
 		print = true;
 
 		print_log(dev);
+	}
+
+	if (dev->LogUnread_last != dev->LogUnread)
+	{
+		printf("LOG unread (incremental)= %d\n", dev->LogUnread);
+		print = true;
+
+//		print_log(dev);
+
+		dev->LogUnread_last = dev->LogUnread;
 	}
 
 	if (dev->TimeoutOccurred)
@@ -615,7 +627,6 @@ void rte_listen_DEFTIME(DEV_HND dev)
 
 void get_unread_log_one(DEV_HND dev)
 {
-	uint32_t log_available;
 	int r;
 	bool cont = true;
 
@@ -632,6 +643,10 @@ void get_unread_log_one(DEV_HND dev)
 
 	void count()
 	{
+#if DLL_LESS_THEN_480
+
+		uint32_t log_available;
+
 		dev->status = AIS_UnreadLOG_Count(dev->hnd, &log_available);
 		if (dev->status)
 		{
@@ -640,6 +655,11 @@ void get_unread_log_one(DEV_HND dev)
 		}
 
 		printf("AIS_UnreadLOG_Count()= log_available= %d\n", log_available);
+
+#else
+		MainLoop(dev);
+		printf("LOG unread (incremental)= %d\n", dev->LogUnread);
+#endif
 
 		info();
 	}
