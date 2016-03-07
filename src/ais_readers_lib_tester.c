@@ -923,7 +923,6 @@ struct S_TEST_MENU
 { 'l', "Get log", log_get, true },
 { 'n', "Get log by Index", log_get_by_index, true },
 { 'N', "Get log by Time", log_get_by_time, true },
-{ 'T', "Test device function", test_device, true },
 { 'w', "White-list Read", whitelist_read, true },
 { 'W', "White-list Write", whitelist_write, true },
 { 'b', "Black-list Read", blacklist_read, true },
@@ -935,6 +934,7 @@ struct S_TEST_MENU
 { '3', "Device 3 activate", dev_activate_3, false },
 { '4', "Device 4 activate", dev_activate_4, false },
 { 'u', "Get a unread LOG", get_unread_log_one, true },
+//{ 'T', "Test device function", test_device, true },
 };
 
 void print_menu()
