@@ -27,20 +27,24 @@ test_folder:
 	-mkdir -p $(OUTDIR)/linux/arm-hf
 	-mkdir -p $(OUTDIR)/osx/x86
 
-pre_test : test_folder
+rm_obj :
 	-rm -f src/*.o
+
+pre_test : test_folder rm_obj
 
 win windows : info_ver
 	make win32
 	make win64
 	make win_arm
 	make win_armhf
+	make rm_obj
 
 lin linux : info_ver
 	make lin32
 	make lin64
+	make rm_obj
 
-osx : info_ver osx_
+osx : info_ver osx_ rm_obj
 
 ####################################################################
 
