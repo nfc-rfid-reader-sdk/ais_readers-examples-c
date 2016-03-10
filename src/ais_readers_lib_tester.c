@@ -15,7 +15,7 @@
 
 #define MINIMAL_LIB_VERSION			"4.9.1"
 
-#define MENU_COL_WIDTH		45
+#define MENU_COL_WIDTH		30
 #define MENU_COL_NUMBER		3
 
 #include "ais_readers_lib_tester.h"
@@ -43,6 +43,8 @@ static c_string hdr[] =
 //"   1 |[128(0x80):ACTION_CARD_UNLOCKED_5]|    19 | 1234567 | 12345 | [7]:04:55:19:EA:31:33:80 | 1444738203 | Tue Oct 13 14:10:03 2015
 //"-----+----------------------------------+-------+---------+-------+--------------------------+------------+--------------------------
 
+//------------------------------------------------------------------
+char tmpstr[64];
 //------------------------------------------------------------------
 //------------------------------------------------------------------
 void wr_status_(DL_STATUS status, const char * pre_msg)
@@ -781,6 +783,45 @@ void get_unread_log_one(DEV_HND dev)
 	} while (cont);
 }
 
+void get_io_state(DEV_HND dev)
+{
+	uint32_t intercom;
+	uint32_t door;
+
+	dev->status = AIS_GetIoState(dev->hnd, &intercom, &door, &dev->relay_state);
+	if (dev->status)
+	{
+		wr_status("AIS_GetIoState()");
+		return;
+	}
+	printf("IO STATE= intercom= %d, door= %d, relay_state= %d\n", intercom,
+			door, dev->relay_state);
+}
+
+void relay_toggle(DEV_HND dev)
+{
+	get_io_state(dev);
+
+	dev->relay_state = !dev->relay_state;
+
+	dev->status = AIS_RelayStateSet(dev->hnd, dev->relay_state);
+
+	sprintf(tmpstr, "AIS_RelayStateSet(RELAY= %d)", dev->relay_state);
+
+	wr_status(tmpstr);
+}
+
+void lock_open(DEV_HND dev)
+{
+	uint32_t pulse_duration = 2000;
+
+	dev->status = AIS_LockOpen(dev->hnd, pulse_duration);
+
+	sprintf(tmpstr, "AIS_LockOpen(pulse_duration= %d ms)", pulse_duration);
+
+	wr_status(tmpstr);
+}
+
 void test_light(DEV_HND dev)
 {
 	bool green_master = false;
@@ -913,12 +954,17 @@ struct S_TEST_MENU
 	bool must_have_device_handle;
 } mn[] =
 {
-{ 'x', "Exit ( or press ESC )", 0, false },
-{ 'q', "List devices", list_device, false },
+{ 'h', "Help / menu", print_menu_x, false },
+{ 'x', "Exit from tester", 0, false },
 { 'Q', "Edit device list for checking", edit_device_list, false },
+{ 'q', "List devices", list_device, false },
 //{ 's', "select device", 0, true },
 { 'o', "Open device", open_device, true },
 { 'c', "Close device", close_device, true },
+{ '1', "Device 1 activate", dev_activate_1, false },
+{ '2', "Device 2 activate", dev_activate_2, false },
+{ '3', "Device 3 activate", dev_activate_3, false },
+//{ '4', "Device 4 activate", dev_activate_4, false },
 { 'i', "Device information", get_info, true },
 { 't', "Get time", time_get, true },
 { 'T', "Set time", time_set, true },
@@ -928,18 +974,17 @@ struct S_TEST_MENU
 { 'l', "Get log", log_get, true },
 { 'n', "Get log by Index", log_get_by_index, true },
 { 'N', "Get log by Time", log_get_by_time, true },
+{ 'u', "Get a unread LOG", get_unread_log_one, true },
 { 'w', "White-list Read", whitelist_read, true },
 { 'W', "White-list Write", whitelist_write, true },
 { 'b', "Black-list Read", blacklist_read, true },
 { 'B', "Black-list Write", blacklist_write, true },
 { 'L', "Test lights", test_light, true },
-{ 'h', "Help / menu", print_menu_x, false },
-{ '1', "Device 1 activate", dev_activate_1, false },
-{ '2', "Device 2 activate", dev_activate_2, false },
-{ '3', "Device 3 activate", dev_activate_3, false },
-{ '4', "Device 4 activate", dev_activate_4, false },
-{ 'u', "Get a unread LOG", get_unread_log_one, true },
 //{ 'T', "Test device function", test_device, true },
+{ 'g', "Get IO state", get_io_state, true },
+{ 'G', "Open gate/lock", lock_open, true },
+{ 'y', "Relay toggle state", relay_toggle, true },
+
 };
 
 void print_menu()
