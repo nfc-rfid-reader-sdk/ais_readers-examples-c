@@ -13,7 +13,7 @@
 #include <string.h>
 #include <time.h>
 
-#define MINIMAL_LIB_VERSION			"4.8.0"
+#define MINIMAL_LIB_VERSION			"4.9.1"
 
 #define MENU_COL_WIDTH		45
 #define MENU_COL_NUMBER		3
@@ -322,7 +322,7 @@ void print_rte(DEV_HND dev)
 
 void log_get(DEV_HND dev)
 {
-	dev->status = AIS_GetLog_Set(dev->hnd, pass);
+	dev->status = AIS_GetLog(dev->hnd, pass);
 	wr_status("AIS_GetLog_Set()");
 
 	if (dev->status)
@@ -454,25 +454,23 @@ void whitelist_write(DEV_HND dev)
 
 void blacklist_read(DEV_HND dev)
 {
-	int list_size;
-	char * black_list = 0;
+	int list_size = 0;
+	c_string str_black_list = 0;
 
 	puts("Read black-list :");
 
-	dev->status = AIS_Blacklist_GetSize(dev->hnd, pass, &list_size);
-	printf("AIS_Blacklist_GetSize(pass:%s): size= %d > %s\n", pass,
-			list_size, dl_status2str(dev->status));
+	dev->status = AIS_Blacklist_Read(dev->hnd, pass, &str_black_list);
+
+	if (dev->status == DL_OK)
+		list_size = strlen(str_black_list);
+
+	printf("AIS_Blacklist_Read(pass:%s): black_list(size= %d | %p) > %s\n",
+			pass, list_size, str_black_list, dl_status2str(dev->status));
 
 	if (dev->status || list_size <= 0)
 		return;
 
-	black_list = (char *) malloc(list_size);
-
-	AIS_Blacklist_Read(dev->hnd, black_list);
-
-	puts(black_list);
-
-	free(black_list);
+	puts(str_black_list);
 }
 
 void blacklist_write(DEV_HND dev)
@@ -496,6 +494,11 @@ void blacklist_write(DEV_HND dev)
 			dl_status2str(dev->status));
 }
 
+void print_log_unread(DEV_HND dev)
+{
+	printf("[%d] LOG unread (incremental)= %d\n", dev->idx, dev->LogUnread);
+}
+
 bool MainLoop(DEV_HND dev)
 {
 	bool print = false;
@@ -513,7 +516,7 @@ bool MainLoop(DEV_HND dev)
 
 	if (dev->RealTimeEvents)
 	{
-		printf("RTE= %d\n", dev->RealTimeEvents);
+		printf("[%d] RTE= %d\n", dev->idx, dev->RealTimeEvents);
 		print = true;
 
 		print_rte(dev);
@@ -521,7 +524,7 @@ bool MainLoop(DEV_HND dev)
 
 	if (dev->LogAvailable)
 	{
-		printf("LOG= %d\n", dev->LogAvailable);
+		printf("[%d] LOG= %d\n", dev->idx, dev->LogAvailable);
 		print = true;
 
 		print_log(dev);
@@ -529,7 +532,8 @@ bool MainLoop(DEV_HND dev)
 
 	if (dev->LogUnread_last != dev->LogUnread)
 	{
-		printf("LOG unread (incremental)= %d\n", dev->LogUnread);
+		print_log_unread(dev);
+
 		print = true;
 
 //		print_log(dev);
@@ -539,13 +543,14 @@ bool MainLoop(DEV_HND dev)
 
 	if (dev->TimeoutOccurred)
 	{
-		printf("TimeoutOccurred= %d\n", dev->TimeoutOccurred);
+		printf("[%d] TimeoutOccurred= %d\n", dev->idx, dev->TimeoutOccurred);
 		print = true;
 	}
 
 	if (dev->Status)
 	{
-		printf("local_status= %s\n", dl_status2str((DL_STATUS) dev->Status));
+		printf("[%d] local_status= %s\n", dev->idx,
+				dl_status2str((DL_STATUS) dev->Status));
 		print = true;
 	}
 
@@ -577,7 +582,7 @@ bool MainLoop(DEV_HND dev)
 
 	if (dev->cmdResponses)
 	{
-		puts("\n-- COMMAND FINISH !");
+		printf("\n-- [%d] COMMAND FINISH !\n", dev->idx);
 		print = true;
 	}
 
@@ -659,7 +664,7 @@ void get_unread_log_one(DEV_HND dev)
 
 #else
 		MainLoop(dev);
-		printf("LOG unread (incremental)= %d\n", dev->LogUnread);
+		print_log_unread(dev);
 #endif
 
 		info();
@@ -917,8 +922,8 @@ struct S_TEST_MENU
 { 'i', "Device information", get_info, true },
 { 't', "Get time", time_get, true },
 { 'T', "Set time", time_set, true },
-{ 'P', "Set default password in application", password_set_default, false },
-{ 'p', "Change password", password_change, true },
+{ 'p', "Set application password", password_set_default, false },
+{ 'P', "Change device password", password_change, true },
 { 'r', "Wait for RTE", rte_listen_DEFTIME, true },
 { 'l', "Get log", log_get, true },
 { 'n', "Get log by Index", log_get_by_index, true },
@@ -1011,7 +1016,7 @@ int main(int argc, char **argv)
 	printf("Tester for 'ais_readers' dynamic library "
 			"version %s and later\n", MINIMAL_LIB_VERSION);
 
-	puts(AIS_GetDLLVersion());
+	puts(AIS_GetLibraryVersionStr());
 
 	print_datatype_size();
 

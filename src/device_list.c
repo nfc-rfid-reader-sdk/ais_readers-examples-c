@@ -102,9 +102,13 @@ void get_list_info(void)
 	puts(hdr[0]);
 	for (i = 0; i < device_count; i++)
 	{
+		DEV_HND dh = device[i];
+
+		dh->idx = i + 1;
+
 		// serial, Type, GetFTDISerial, FTDIDescription, HND
-		status = AIS_List_GetInformation(&device[i]->hnd, &Device_Serial,
-				&Device_Type, &Device_ID, &Device_FW_VER, &Device_CommSpeed,
+		status = AIS_List_GetInformation(&dh->hnd, &Device_Serial, &Device_Type,
+				&Device_ID, &Device_FW_VER, &Device_CommSpeed,
 				&Device_FTDI_Serial, &Device_isOpened, &Device_Status,
 				&System_Status);
 
@@ -115,10 +119,10 @@ void get_list_info(void)
 			continue;
 		}
 
-		printf(format, i + 1, device[i]->hnd, Device_Serial,
-				Device_Type, Device_Type, Device_ID, Device_FW_VER,
-				Device_CommSpeed, Device_FTDI_Serial, Device_isOpened,
-				Device_Status, System_Status);
+		printf(format, dh->idx, dh->hnd, Device_Serial, Device_Type,
+				Device_Type, Device_ID, Device_FW_VER, Device_CommSpeed,
+				Device_FTDI_Serial, Device_isOpened, Device_Status,
+				System_Status);
 	}
 	puts(hdr[0]);
 	puts(".");
@@ -130,7 +134,7 @@ void get_list_info(void)
 void prepare_list_for_check()
 {
 	DL_STATUS status;
-	int device_type = DL_BASE_HD;
+	int device_type = DL_AIS_BASE_HD_SDK;
 	int device_id = 0;
 
 	puts("AIS_List_GetDevicesForCheck() BEFORE / DLL STARTUP");
@@ -138,7 +142,7 @@ void prepare_list_for_check()
 
 	AIS_List_EraseAllDevicesForCheck();
 
-	puts("Tester try to connect with Base HD devices on addresses 1 and 3");
+	puts("Tester try to connect with Base HD devices on addresses 1 and 3 and 5");
 
 	device_id = 1;
 
@@ -152,29 +156,50 @@ void prepare_list_for_check()
 	printf("AIS_List_AddDeviceForCheck(type: %d, id: %d)> { %s }\n",
 			device_type, device_id, dl_status2str(status));
 
+	device_id = 5;
+
+	status = AIS_List_AddDeviceForCheck(device_type, device_id);
+	printf("AIS_List_AddDeviceForCheck(type: %d, id: %d)> { %s }\n",
+			device_type, device_id, dl_status2str(status));
+
 	puts("AIS_List_GetDevicesForCheck() AFTER LIST UPDATE");
 	puts(AIS_List_GetDevicesForCheck());
 }
 
 void print_available_devices()
 {
-	puts("Look at ais_readers_list.h for Device descriptions");
+	puts("Look at ais_readers_list.h for Device enumeration");
+	printf("Known devices ( supported by %s )\n", AIS_GetLibraryVersionStr());
 
-	puts("Known devices:");
-#define PUTSDEV(device) printf("\t%2d : %s\n", device, #device);
+	int i;
+	c_string dev_name;
+	c_string dev_dsc;
+	DL_STATUS status;
 
-	PUTSDEV(DL_AIS_100);
-	PUTSDEV(DL_AIS_20);
-	PUTSDEV(DL_AIS_30);
-	PUTSDEV(DL_AIS_35);
-	PUTSDEV(DL_AIS_50);
-	PUTSDEV(DL_AIS_110);
-	PUTSDEV(DL_AIS_LOYALITY);
-	PUTSDEV(DL_AIS_37);
-	PUTSDEV(DL_AIS_BMR);
-	PUTSDEV(DL_AIS_BASE_HD);
-	PUTSDEV(DL_XRCA);
-	PUTSDEV(DL_BASE_HD);
+	for (i = 0; i < DL_AIS_SYSTEM_TYPES_COUNT; ++i)
+	{
+		status = dbg_device_type(i, &dev_name, &dev_dsc, 0, 0, 0, 0, 0);
+		printf("\tDevice type= %2d : ", i);
+		if (status)
+		{
+			printf("NOT SUPPORTED!\n");
+		}
+		else
+		{
+#define SPCS		15
+
+			printf("'%s'", dev_name);
+
+			// column
+			int spaces = strlen(dev_name);
+			if (spaces <= SPCS)
+				spaces = SPCS - spaces;
+			while (spaces--)
+				putchar(' ');
+
+			printf("= '%s'\n", dev_dsc);
+		}
+	}
 }
 
 void edit_device_list(DEV_HND device) // Parameter is irrelevant
@@ -191,12 +216,13 @@ void edit_device_list(DEV_HND device) // Parameter is irrelevant
 	puts("AIS_List_GetDevicesForCheck() ACTUAL List");
 	puts(AIS_List_GetDevicesForCheck());
 
-	puts("Enter device type and then ID for check");
+	puts("Enter device type and then enter device BUS ID for check");
 	print_available_devices();
 
-	for(;;)
+	for (;;)
 	{
-		printf("Enter device type (0, 1, ... , 28) ('x' for exit): ");
+		printf("Enter device type (1, 2, ... , %d) ('x' for exit): ",
+				DL_AIS_SYSTEM_TYPES_COUNT);
 		fflush(stdout);
 		r = scanf("%d", &device_type);
 		if (!r)

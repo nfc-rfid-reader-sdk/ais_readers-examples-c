@@ -26,6 +26,8 @@ typedef struct S_LOG
 
 typedef struct S_DEVICE
 {
+	int idx; // index start from 1
+
 	HND_AIS hnd;
 
 	bool print_percent_hdr;
