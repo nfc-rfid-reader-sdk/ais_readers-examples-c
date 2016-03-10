@@ -3,6 +3,15 @@
  *
  *  Created on: 08.10.2015.
  *      Author: SrkoS
+ *
+ * ABCDEFGHIJKLMNOPQRSTUVWXYZ
+ * -*----*----+-*-**--*--*---
+ * -**---***--*-*****-**-***-
+ * abcdefghijklmnopqrstuvwxyz
+ *
+ * 1234567890
+ * ****----------------------
+ *
  */
 #ifndef AIS_READERS_LIB_TESTER_H_
 #define AIS_READERS_LIB_TESTER_H_
@@ -48,6 +57,8 @@ typedef struct S_DEVICE
 	int TimeoutOccurred; // debug only
 	int Status; // additional status
 
+	//--------------------
+	uint32_t relay_state;
 	//--------------------
 	log_t log;
 	//--------------------
