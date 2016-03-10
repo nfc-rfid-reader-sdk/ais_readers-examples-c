@@ -49,7 +49,7 @@ osx : info_ver osx_ rm_obj
 ####################################################################
 
 osx_ : pre_test
-	gcc -arch i386 -arch x86_64 -o $(OUTDIR)/osx/x86/ais_readers_lib_tester -Iinclude -L$(LIBPATH)/osx/x86 -D__linux__=2 src/*.c -lais_readers
+	gcc -arch i386 -arch x86_64 -o $(OUTDIR)/osx/x86/ais_readers_lib_tester -I$(LIBPATH)/include -L$(LIBPATH)/osx/x86 -D__linux__=2 src/*.c -lais_readers
 	echo Tester for Intel OSX is created in $(OUTDIR)/osx/x86
 
 lin32 : pre_test
