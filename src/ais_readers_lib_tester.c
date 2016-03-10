@@ -633,102 +633,112 @@ void rte_listen_DEFTIME(DEV_HND dev)
 	rte_listen(dev, DEFAULT_RTE_TIME);
 }
 
-void get_unread_log_one(DEV_HND dev)
+//------------------------------------------------------------------
+//-- get_unread_log_one
+
+int get_unread_log_one__info(DEV_HND dev)
 {
 	int r;
-	bool cont = true;
 
-	void info()
-	{
-		r = AIS_ReadLog_Count(dev->hnd);
-		if (r)
-			printf("AIS_ReadLog_Count()= %d\n", r);
+	r = AIS_ReadLog_Count(dev->hnd);
+	if (r)
+		printf("AIS_ReadLog_Count()= %d\n", r);
 
-		r = AIS_ReadRTE_Count(dev->hnd);
-		if (r)
-			printf("AIS_ReadRTE_Count()= %d\n", r);
-	}
+	return r;
+}
 
-	void count()
-	{
+int get_unread_log_one__count(DEV_HND dev)
+{
+	int r = 0;
+
 #if DLL_LESS_THEN_480
 
-		uint32_t log_available;
+	uint32_t log_available;
 
-		dev->status = AIS_UnreadLOG_Count(dev->hnd, &log_available);
-		if (dev->status)
-		{
-			wr_status("AIS_UnreadLOG_Count()");
-			return;
-		}
+	dev->status = AIS_UnreadLOG_Count(dev->hnd, &log_available);
+	if (dev->status)
+	{
+		wr_status("AIS_UnreadLOG_Count()");
+		return;
+	}
 
-		printf("AIS_UnreadLOG_Count()= log_available= %d\n", log_available);
+	printf("AIS_UnreadLOG_Count()= log_available= %d\n", log_available);
 
 #else
-		MainLoop(dev);
-		print_log_unread(dev);
+	MainLoop(dev);
+	print_log_unread(dev);
 #endif
 
-		info();
-	}
+	get_unread_log_one__info(dev);
 
-	void get()
+	return r;
+}
+
+int get_unread_log_one__get(DEV_HND dev)
+{
+	puts("-= PRINT UNREAD LOG =-");
+	puts(hdr[0]);
+	puts(hdr[1]);
+	puts(hdr[0]);
+
+	do
 	{
-		puts("-= PRINT UNREAD LOG =-");
-		puts(hdr[0]);
-		puts(hdr[1]);
-		puts(hdr[0]);
-
-		do
-		{
-			dev->status = AIS_UnreadLOG_Get(dev->hnd, &dev->log.index,
-					&dev->log.action, &dev->log.reader_id, &dev->log.card_id,
-					&dev->log.system_id, dev->log.nfc_uid,
-					&dev->log.nfc_uid_len, &dev->log.timestamp);
-
-			if (dev->status)
-				break;
-
-			print_log_record(dev);
-
-		} while (false);
-
-		puts(hdr[0]);
-
-		wr_status("AIS_UnreadLOG_Get()");
+		dev->status = AIS_UnreadLOG_Get(dev->hnd, &dev->log.index,
+				&dev->log.action, &dev->log.reader_id, &dev->log.card_id,
+				&dev->log.system_id, dev->log.nfc_uid,
+				&dev->log.nfc_uid_len, &dev->log.timestamp);
 
 		if (dev->status)
-		{
-			return;
-		}
+			break;
 
-		info();
-	}
+		print_log_record(dev);
 
-	void ack()
+	} while (false);
+
+	puts(hdr[0]);
+
+	wr_status("AIS_UnreadLOG_Get()");
+
+	if (dev->status)
 	{
-		dev->status = AIS_UnreadLOG_Ack(dev->hnd, 1);
-		wr_status("AIS_UnreadLOG_Ack()");
-		if (dev->status)
-		{
-			return;
-		}
-
-		info();
+		return dev->status;
 	}
 
-	void prn_help()
+	get_unread_log_one__info(dev);
+
+	return dev->status;
+}
+
+int get_unread_log_one__ack(DEV_HND dev)
+{
+	dev->status = AIS_UnreadLOG_Ack(dev->hnd, 1);
+	wr_status("AIS_UnreadLOG_Ack()");
+	if (dev->status)
 	{
-		puts("Help: use "
-				"1 or c for count | "
-				"2 or g for get | "
-				"3 or a for ACK\n"
-				"x/X/q/Q : exit from this part");
+		return dev->status;
 	}
+
+	get_unread_log_one__info(dev);
+
+	return dev->status;
+}
+
+void get_unread_log_one__prn_help()
+{
+	puts("Help: use "
+			"1 or c for count | "
+			"2 or g for get | "
+			"3 or a for ACK\n"
+			"x/X/q/Q : exit from this part");
+}
+
+void get_unread_log_one(DEV_HND dev)
+{
+	bool cont = true;
 
 	//--------------------------------------------------------------
 
-	prn_help();
+	get_unread_log_one__prn_help();
 
 	do
 	{
@@ -739,21 +749,21 @@ void get_unread_log_one(DEV_HND dev)
 		case '1':
 		case 'c':
 
-			count();
+			get_unread_log_one__count(dev);
 
 			break;
 
 		case '2':
 		case 'g':
 
-			get();
+			get_unread_log_one__get(dev);
 
 			break;
 
 		case '3':
 		case 'a':
 
-			ack();
+			get_unread_log_one__ack(dev);
 
 			break;
 
@@ -773,7 +783,7 @@ void get_unread_log_one(DEV_HND dev)
 
 		default:
 
-			prn_help();
+			get_unread_log_one__prn_help();
 
 			break;
 		}
@@ -782,6 +792,7 @@ void get_unread_log_one(DEV_HND dev)
 
 	} while (cont);
 }
+//------------------------------------------------------------------
 
 void get_io_state(DEV_HND dev)
 {
