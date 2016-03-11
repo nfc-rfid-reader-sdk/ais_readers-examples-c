@@ -13,8 +13,14 @@
 #include <string.h>
 
 int device_count;
-DEV_HND *device = NULL;
 DEV_HND device_active = NULL;
+
+#ifdef DEV_ON_HEAP
+extern DEV_HND *device;
+#else // #ifdef DEV_ON_HEAP
+#define MAX_DEVICES		50
+device_t device[MAX_DEVICES];
+#endif // #ifdef DEV_ON_HEAP
 
 char tmpstr[512];
 
@@ -35,18 +41,32 @@ void close_device(DEV_HND dev)
 // device_count
 int create_devices(void)
 {
+#ifdef DEV_ON_HEAP
+
 	int i;
+	int devices_to_create;
+	static bool created_once = false;
+
+	if (created_once)
+		return 0;
 
 	if (device)
 		destroy_devices();
 
-	device = calloc(device_count, sizeof(DEV_HND));
+//	devices_to_create = device_count;
+	devices_to_create = device_count > 10 ? device_count + 10 : 10;
 
-	for (i = 0; i < device_count; i++)
+	device = calloc(devices_to_create, sizeof(DEV_HND));
+
+	for (i = 0; i < devices_to_create; i++)
 	{
 		device[i] = malloc(sizeof(device_t));
 		memset(device[i], 0, sizeof(device_t));
 	}
+
+	created_once = true;
+
+#endif // #ifdef DEV_ON_HEAP
 
 	return 0; // OK
 }
@@ -57,14 +77,18 @@ int destroy_devices(void)
 
 	// free mem
 	for (i = 0; i < device_count; ++i)
-		if (device[i])
+		if (DEV_PTR(i))
 		{
-			close_device(device[i]);
+			close_device(DEV_PTR(i));
+#ifdef DEV_ON_HEAP
 			free(device[i]);
+#endif // #ifdef DEV_ON_HEAP
 		}
 
+#ifdef DEV_ON_HEAP
 	if (device)
 		free(device);
+#endif // #ifdef DEV_ON_HEAP
 
 	return 0;
 }
@@ -88,7 +112,7 @@ void get_list_info(void)
 	//	     ----!------------------+----------+----------+-----+-----++--------+----------++--------+-----------+-----------
 	//	     123 | 0000000003391040 | ab012345 | 14h (20) | 20  | 112 || 250000 | A6Z27CHD || 0      | 0         | 30
 	};
-	c_string format = "%3d | %16p | %8s | %Xh (%d) | %3i | %3i || %6u | %8s || %6d | %9d | %d\n";
+	c_string format = "%3d | %16p | %8s | %2Xh (%d) | %3i | %3i || %6u | %8s || %6d | %9d | %d\n";
 
 	// check all connected readers
 	// for description, types, serials
@@ -102,7 +126,7 @@ void get_list_info(void)
 	puts(hdr[0]);
 	for (i = 0; i < device_count; i++)
 	{
-		DEV_HND dh = device[i];
+		DEV_HND dh = DEV_PTR(i);
 
 		dh->idx = i + 1;
 
@@ -127,7 +151,7 @@ void get_list_info(void)
 	puts(hdr[0]);
 	puts(".");
 
-	device_active = device[0];
+	device_active = DEV_PTR(0);
 	puts("Device [1] is selected for active");
 }
 
@@ -202,7 +226,7 @@ void print_available_devices()
 	}
 }
 
-void edit_device_list(DEV_HND device) // Parameter is irrelevant
+void edit_device_list(DEV_HND dev) // Parameter is irrelevant
 {
 	DL_STATUS status;
 	int device_type;
@@ -222,7 +246,7 @@ void edit_device_list(DEV_HND device) // Parameter is irrelevant
 	for (;;)
 	{
 		printf("Enter device type (1, 2, ... , %d) ('x' for exit): ",
-				DL_AIS_SYSTEM_TYPES_COUNT);
+				DL_AIS_SYSTEM_TYPES_COUNT - 1);
 		fflush(stdout);
 		r = scanf("%d", &device_type);
 		if (!r)
@@ -257,7 +281,7 @@ void edit_device_list(DEV_HND device) // Parameter is irrelevant
 	fflush(stdin);
 }
 
-void list_device(DEV_HND device) // Parameter is irrelevant
+void list_device(DEV_HND dev) // Parameter is irrelevant
 {
 	static bool init_list = false;
 

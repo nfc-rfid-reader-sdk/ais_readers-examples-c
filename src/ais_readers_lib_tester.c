@@ -618,7 +618,7 @@ void rte_listen(DEV_HND dev, int seconds)
 	{
 		for (i = 0; i < device_count; ++i)
 		{
-			MainLoop(device[i]);
+			MainLoop(DEV_PTR(i));
 
 //		if (dev->status == NO_DEVICES)
 //			break;
@@ -921,7 +921,7 @@ void dev_activate(unsigned int dev_id)
 {
 	if (dev_id < device_count)
 	{
-		device_active = device[dev_id];
+		device_active = DEV_PTR(dev_id);
 		printf("Active device [%d] : Handle= %p : (%p)\n", dev_id + 1,
 				device_active->hnd, device_active);
 	}
@@ -1094,8 +1094,8 @@ int main(int argc, char **argv)
 
 	for (i = 0; i < device_count; ++i)
 	{
-		open_device(device[i]);
-		time_get(device[i]);
+		open_device(DEV_PTR(i));
+		time_get(DEV_PTR(i));
 	}
 
 	menu_switch();
