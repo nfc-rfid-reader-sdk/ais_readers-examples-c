@@ -843,7 +843,7 @@ void test_light(DEV_HND dev)
 	c_string hlp = "\n"
 			"Tester Lights : "
 			"g - green master | r - red master || "
-			"G - green slave | r - red slave || "
+			"G - green slave | R - red slave || "
 			" || x - exit from the light testing\n";
 
 	do
