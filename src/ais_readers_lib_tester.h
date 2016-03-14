@@ -39,6 +39,8 @@ typedef struct S_DEVICE
 
 	HND_AIS hnd;
 
+	int open;
+
 	bool print_percent_hdr;
 	int percent_old;
 

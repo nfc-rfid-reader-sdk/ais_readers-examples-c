@@ -9,6 +9,8 @@
 
 #include "ais_readers_lib_tester.h"
 
+#define DEV_AUTO_OPEN
+
 extern int device_count;
 extern DEV_HND device_active;
 

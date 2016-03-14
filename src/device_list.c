@@ -102,7 +102,6 @@ void get_list_info(void)
 	int Device_FW_VER; //// version of firmware
 	int Device_CommSpeed; //
 	c_string Device_FTDI_Serial; //// FTDI COM port identification
-	int Device_isOpened; //
 	int Device_Status; //// actual device status
 	int System_Status;
 	int i;
@@ -133,7 +132,7 @@ void get_list_info(void)
 		// serial, Type, GetFTDISerial, FTDIDescription, HND
 		status = AIS_List_GetInformation(&dh->hnd, &Device_Serial, &Device_Type,
 				&Device_ID, &Device_FW_VER, &Device_CommSpeed,
-				&Device_FTDI_Serial, &Device_isOpened, &Device_Status,
+				&Device_FTDI_Serial, &dh->open, &Device_Status,
 				&System_Status);
 
 		if (status)
@@ -145,11 +144,27 @@ void get_list_info(void)
 
 		printf(format, dh->idx, dh->hnd, Device_Serial, Device_Type,
 				Device_Type, Device_ID, Device_FW_VER, Device_CommSpeed,
-				Device_FTDI_Serial, Device_isOpened, Device_Status,
+				Device_FTDI_Serial, dh->open, Device_Status,
 				System_Status);
 	}
 	puts(hdr[0]);
 	puts(".");
+
+#ifdef DEV_AUTO_OPEN
+
+	for (i = 0; i < device_count; ++i)
+	{
+		DEV_HND dh = DEV_PTR(i);
+
+		if (dh->open)
+			continue;
+
+		open_device(dh);
+
+		time_get(dh);
+	}
+
+#endif // #ifdef DEV_AUTO_OPEN
 
 	device_active = DEV_PTR(0);
 	puts("Device [1] is selected for active");
