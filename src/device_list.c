@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 int device_count;
 DEV_HND device_active = NULL;
@@ -205,96 +206,200 @@ void prepare_list_for_check()
 	puts(AIS_List_GetDevicesForCheck());
 }
 
-void print_available_devices()
+void print_known_device_types()
 {
-	puts("Look at ais_readers_list.h for Device enumeration");
-	printf("Known devices ( supported by %s )\n", AIS_GetLibraryVersionStr());
-
 	int i;
 	c_string dev_name;
 	c_string dev_dsc;
 	DL_STATUS status;
+	const char *hdr_l = "---------+-----------------+--------------------------------";
+	const char *hdr_t = "Dev.type |   Short  name   | Long name";
 
-	for (i = 0; i < DL_AIS_SYSTEM_TYPES_COUNT; ++i)
+	puts("");
+	puts(hdr_l);
+	puts("Look at ais_readers_list.h for Device enumeration");
+	printf("Known devices ( supported by %s )\n", AIS_GetLibraryVersionStr());
+	puts(hdr_l);
+	puts(hdr_t);
+	puts(hdr_l);
+
+	for (i = 1; i < DL_AIS_SYSTEM_TYPES_COUNT; ++i)
 	{
 		status = dbg_device_type(i, &dev_name, &dev_dsc, 0, 0, 0, 0, 0);
-		printf("\tDevice type= %2d : ", i);
+		printf("%8d : ", i);
 		if (status)
 		{
 			printf("NOT SUPPORTED!\n");
 		}
 		else
 		{
-#define SPCS		15
-
-			printf("'%s'", dev_name);
-
-			// column
-			int spaces = strlen(dev_name);
-			if (spaces <= SPCS)
-				spaces = SPCS - spaces;
-			while (spaces--)
-				putchar(' ');
-
-			printf("= '%s'\n", dev_dsc);
+			printf("%15s | %s\n", dev_name, dev_dsc);
 		}
 	}
+	puts(hdr_l);
+}
+
+void edit_device_list__help()
+{
+	puts("Help : Edit device list");
+	puts("(no case sensitive)");
+
+	puts(" h / 0 : print this help");
+
+	puts(" x / q / Q : exit from sub menu");
+
+	puts(" 1 / t : show known device types");
+
+	puts(" 2 / l : show actual list for checking");
+
+	puts(" 3 / c : clear list for checking");
+
+	puts(" 4 / + / a : add device for check");
+
+	puts(" 5 / - / e : erase device from checking list");
+}
+
+void do_dev_action(DL_STATUS (*dev_f)(int type, int id))
+{
+	DL_STATUS status;
+	int r;
+	int device_type;
+	int device_id;
+
+	puts("Enter device type and then enter device BUS ID for check");
+
+	printf("Enter device type (1, 2, ... , %d) ('x' for exit): ",
+			DL_AIS_SYSTEM_TYPES_COUNT - 1);
+	fflush(stdout);
+	r = scanf("%d", &device_type);
+	if (!r)
+		return;
+
+	printf("Enter device bus ID (if full duplex then enter 0): ");
+	fflush(stdout);
+	r = scanf("%d", &device_id);
+	if (!r)
+	{
+		fflush(stdin);
+		device_id = 0;
+	}
+
+	status = dev_f(device_type, device_id);
+	printf("(type: %d, id: %d)> { %s }\n",
+			device_type, device_id, dl_status2str(status));
+}
+
+void dev_list_print(const char *msg)
+{
+	if (msg)
+		puts(msg);
+	else
+		puts("Show actual list for checking:");
+
+	puts(AIS_List_GetDevicesForCheck());
 }
 
 void edit_device_list(DEV_HND dev) // Parameter is irrelevant
 {
-	DL_STATUS status;
-	int device_type;
-	int device_id;
-	int r;
-	bool list_erased = false;
+	bool prn_start = true;
+	//--------------------------------------------------------------
+	fflush(stdin);
 
 	puts("");
-	puts("Edit device types for checking...");
+	puts("Edit device types for checking - sub-menu:");
 
-	puts("AIS_List_GetDevicesForCheck() ACTUAL List");
-	puts(AIS_List_GetDevicesForCheck());
+	//--------------------------------------------------------------
+	edit_device_list__help();
 
-	puts("Enter device type and then enter device BUS ID for check");
-	print_available_devices();
-
-	for (;;)
+	for(;;)
 	{
-		printf("Enter device type (1, 2, ... , %d) ('x' for exit): ",
-				DL_AIS_SYSTEM_TYPES_COUNT - 1);
+		if (prn_start)
+		{
+			puts("Enter sub menu command, and hit enter : ");
+			prn_start = false;
+		}
+
 		fflush(stdout);
-		r = scanf("%d", &device_type);
-		if (!r)
+
+		char ch = tolower(getchar());
+
+		switch (ch)
+		{
+		case 'x':
+		case 'q':
+
+			puts("");
+			puts("Finish list edit.");
+			puts("");
+			dev_list_print("AFTER UPDATE CYCLE");
+
+			fflush(stdout);
+			fflush(stdin);
+
+			return;
+
+		case '1':
+		case 't':
+
+			print_known_device_types();
+
 			break;
 
-		printf("Enter device bus ID (if full duplex then enter 0): ");
-		fflush(stdout);
-		r = scanf("%d", &device_id);
-		if (!r)
-		{
-			fflush(stdin);
-			device_id = 0;
-		}
+		case '2':
+		case 'l':
 
-		if (!list_erased)
-		{
+			dev_list_print(0);
+
+			break;
+
+		case '3':
+		case 'c':
+
+			puts("Clear list for checking !");
 			AIS_List_EraseAllDevicesForCheck();
-			list_erased = true;
+
+			break;
+
+		case '4':
+		case 'a':
+		case '+':
+
+			printf("AIS_List_AddDeviceForCheck()...\n");
+			do_dev_action(AIS_List_AddDeviceForCheck);
+
+
+			dev_list_print(0);
+
+			break;
+
+		case '5':
+		case 'e':
+		case '-':
+
+			printf("AIS_List_EraseDeviceForCheck()...\n");
+			do_dev_action(AIS_List_EraseDeviceForCheck);
+
+			dev_list_print(0);
+
+			break;
+
+		case '\n':
+			prn_start = true;
+			// puts("new line");
+
+			break; // skip
+
+		case '0':
+		case 'h':
+		default:
+
+			edit_device_list__help();
+
+			break;
 		}
-		status = AIS_List_AddDeviceForCheck(device_type, device_id);
-		printf("AIS_List_AddDeviceForCheck(type: %d, id: %d)> { %s }\n",
-				device_type, device_id, dl_status2str(status));
-		fflush(stdout);
 	}
-
-	puts("");
-	puts("Finish list edit.");
-	puts("");
-	puts("AIS_List_GetDevicesForCheck() AFTER UPDATE");
-	puts(AIS_List_GetDevicesForCheck());
-
-	fflush(stdin);
 }
+//------------------------------------------------------------------
 
 void list_device(DEV_HND dev) // Parameter is irrelevant
 {
