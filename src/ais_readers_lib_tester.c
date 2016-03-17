@@ -13,7 +13,7 @@
 #include <string.h>
 #include <time.h>
 
-#define MINIMAL_LIB_VERSION			"4.9.1"
+#define MINIMAL_LIB_VERSION			"4.9.5"
 
 #define MENU_COL_WIDTH		30
 #define MENU_COL_NUMBER		3
@@ -179,6 +179,22 @@ void password_set_default(DEV_HND dev)
 	printf("New default application password= %s\n\n", pass);
 
 }
+
+//------------------------------------------------------------------
+
+void ee_lock(DEV_HND dev)
+{
+	dev->status = AIS_EE_WriteProtect(dev->hnd, pass);
+	wr_status("EEPROM Lock - AIS_EE_WriteProtect()");
+}
+
+void ee_unlock(DEV_HND dev)
+{
+	dev->status = AIS_EE_WriteUnProtect(dev->hnd, pass);
+	wr_status("EEPROM Unlock - AIS_EE_WriteUnProtect()");
+}
+
+//------------------------------------------------------------------
 
 void time_get(DEV_HND dev)
 {
@@ -995,6 +1011,8 @@ struct S_TEST_MENU
 { 'g', "Get IO state", get_io_state, true },
 { 'G', "Open gate/lock", lock_open, true },
 { 'y', "Relay toggle state", relay_toggle, true },
+{ 'E', "EERPOM LOCK", ee_lock, true },
+{ 'e', "EERPOM UNLOCK", ee_unlock, true },
 
 };
 

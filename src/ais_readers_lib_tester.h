@@ -5,8 +5,8 @@
  *      Author: SrkoS
  *
  * ABCDEFGHIJKLMNOPQRSTUVWXYZ
- * -*----*----+-*-**--*--*---
- * -**---***--*-*****-**-***-
+ * -*--*-*----+-*-**--*--*---
+ * -**-*-***--*-*****-**-***-
  * abcdefghijklmnopqrstuvwxyz
  *
  * 1234567890
