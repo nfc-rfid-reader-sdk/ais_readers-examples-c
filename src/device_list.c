@@ -171,36 +171,24 @@ void get_list_info(void)
 	puts("Device [1] is selected for active");
 }
 
-void prepare_list_for_check()
+void add_device(int device_type, int device_id)
 {
 	DL_STATUS status;
-	int device_type = DL_AIS_BASE_HD_SDK;
-	int device_id = 0;
 
+	status = AIS_List_AddDeviceForCheck(device_type, device_id);
+	printf("AIS_List_AddDeviceForCheck(type: %d, id: %d)> { %s }\n",
+			device_type, device_id, dl_status2str(status));
+}
+
+void prepare_list_for_check()
+{
 	puts("AIS_List_GetDevicesForCheck() BEFORE / DLL STARTUP");
 	puts(AIS_List_GetDevicesForCheck());
 
 	AIS_List_EraseAllDevicesForCheck();
 
-	puts("Tester try to connect with Base HD devices on addresses 1 and 3 and 5");
-
-	device_id = 1;
-
-	status = AIS_List_AddDeviceForCheck(device_type, device_id);
-	printf("AIS_List_AddDeviceForCheck(type: %d, id: %d)> { %s }\n",
-			device_type, device_id, dl_status2str(status));
-
-	device_id = 3;
-
-	status = AIS_List_AddDeviceForCheck(device_type, device_id);
-	printf("AIS_List_AddDeviceForCheck(type: %d, id: %d)> { %s }\n",
-			device_type, device_id, dl_status2str(status));
-
-	device_id = 5;
-
-	status = AIS_List_AddDeviceForCheck(device_type, device_id);
-	printf("AIS_List_AddDeviceForCheck(type: %d, id: %d)> { %s }\n",
-			device_type, device_id, dl_status2str(status));
+	puts("Tester try to connect with a Base HD device on any/unknown ID");
+	add_device(DL_AIS_BASE_HD_SDK, 0);
 
 	puts("AIS_List_GetDevicesForCheck() AFTER LIST UPDATE");
 	puts(AIS_List_GetDevicesForCheck());
