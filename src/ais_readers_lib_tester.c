@@ -13,7 +13,9 @@
 #include <string.h>
 #include <time.h>
 
-#define MINIMAL_LIB_VERSION			"4.9.5"
+#include <pthread.h>
+
+#define MINIMAL_LIB_VERSION			"4.9.6"
 
 #define MENU_COL_WIDTH		30
 #define MENU_COL_NUMBER		3
@@ -520,6 +522,9 @@ void print_log_unread(DEV_HND dev)
 bool MainLoop(DEV_HND dev)
 {
 	bool print = false;
+
+	if (!dev)
+		return false;
 
 	dev->status = AIS_MainLoop(dev->hnd, //
 			&dev->RealTimeEvents, &dev->LogAvailable, &dev->LogUnread, //
@@ -1082,6 +1087,67 @@ int menu_switch(void)
 	} while (true);
 }
 
+#ifdef USE_THREADED_TEST
+
+void *thread_mainloop(void *arg)
+{
+	for (;;)
+	{
+		MainLoop(device_active);
+//		sleep()
+	}
+
+	return 0;
+}
+
+void *thread_menu_switch(void *arg)
+{
+	menu_switch();
+
+	return 0;
+}
+
+void threads(void)
+{
+	pthread_t thread_loop;
+	pthread_t thread_menu;
+	int iret1, iret2;
+
+	iret1 = pthread_create(&thread_loop, NULL, thread_mainloop,
+			"thread_mainloop");
+
+	if (iret1)
+	{
+		fprintf(stderr, "Error - pthread_create() return code: %d\n", iret1);
+		exit(EXIT_FAILURE);
+	}
+
+	iret2 = pthread_create(&thread_menu, NULL, thread_menu_switch,
+			"thread_menu_switch");
+	if (iret2)
+	{
+		fprintf(stderr, "Error - pthread_create() return code: %d\n", iret2);
+		exit(EXIT_FAILURE);
+	}
+
+	printf("pthread_create() for thread 1 returns: %d\n", iret1);
+	printf("pthread_create() for thread 2 returns: %d\n", iret2);
+
+	fflush(stdout);
+	fflush(stderr);
+
+	/* Wait till threads are complete before main continues. Unless we  */
+	/* wait we run the risk of executing an exit which will terminate   */
+	/* the process and all threads before the threads have completed.   */
+
+	//	pthread_join(thread_loop, NULL);
+	pthread_join(thread_menu, NULL);
+
+	pthread_cancel(thread_loop);
+}
+
+#endif // #ifdef USE_THREADED_TEST
+
 int main(int argc, char **argv)
 {
 	puts("");
@@ -1094,22 +1160,10 @@ int main(int argc, char **argv)
 
 	list_device(0);
 
-#if 0 // TEST
-
-	dev_activate_1(0);
-	open_device(device_active);
-	dev_activate_2(0);
-	open_device(device_active);
-
-	dev_activate_1(0);
-	time_get(device_active);
-	dev_activate_2(0);
-	time_get(device_active);
-
+#ifdef USE_THREADED_TEST
+	threads();
 #else
-
 	menu_switch();
-
 #endif
 
 	destroy_devices();

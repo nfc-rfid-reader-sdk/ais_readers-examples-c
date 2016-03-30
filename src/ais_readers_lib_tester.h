@@ -21,6 +21,8 @@
 // define in IDE
 //#define DEV_MIN_PRINTS
 
+#define USE_THREADED_TEST
+
 typedef struct S_LOG
 {
 	int index; //
