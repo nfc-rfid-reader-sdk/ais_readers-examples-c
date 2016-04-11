@@ -33,6 +33,12 @@ char new_pass[64] = //
 		"1111";
 
 //------------------------------------------------------------------
+
+bool do_main = true;
+
+pthread_mutex_t mloop;
+
+//------------------------------------------------------------------
 static c_string prn_format = "%4d |%34s| %5d | %7d | %5d";
 //------------------------------------------------------------------
 
@@ -526,14 +532,21 @@ bool MainLoop(DEV_HND dev)
 	if (!dev)
 		return false;
 
+	pthread_mutex_lock(&mloop);
+
 	dev->status = AIS_MainLoop(dev->hnd, //
 			&dev->RealTimeEvents, &dev->LogAvailable, &dev->LogUnread, //
 			&dev->cmdResponses, &dev->cmdPercent, //
 			&dev->DeviceStatus, //
 			&dev->TimeoutOccurred, &dev->Status);
+
 	if (dev->status)
 	{
-		wr_status("AIS_MainLoop()");
+		if (dev->status != RESOURCE_BUSY)
+			wr_status("AIS_MainLoop()");
+
+		pthread_mutex_unlock(&mloop);
+
 		return false;
 	}
 
@@ -613,6 +626,8 @@ bool MainLoop(DEV_HND dev)
 
 	if (print)
 		fflush(stdout);
+
+	pthread_mutex_unlock(&mloop);
 
 	return true;
 }
@@ -1100,7 +1115,7 @@ int menu_switch(void)
 
 void *thread_mainloop(void *arg)
 {
-	for (;;)
+	while (do_main)
 	{
 		MainLoop(device_active);
 //		sleep()
@@ -1113,6 +1128,8 @@ void *thread_menu_switch(void *arg)
 {
 	menu_switch();
 
+	do_main = false;
+
 	return 0;
 }
 
@@ -1121,6 +1138,14 @@ void threads(void)
 	pthread_t thread_loop;
 	pthread_t thread_menu;
 	int iret1, iret2;
+
+	int r = pthread_mutex_init(&mloop, NULL);
+	if (r)
+	{
+		fprintf(stderr, "mutex init failed\n");
+
+		return;
+	}
 
 	iret1 = pthread_create(&thread_loop, NULL, thread_mainloop,
 			"thread_mainloop");
@@ -1149,10 +1174,10 @@ void threads(void)
 	/* wait we run the risk of executing an exit which will terminate   */
 	/* the process and all threads before the threads have completed.   */
 
-	//	pthread_join(thread_loop, NULL);
 	pthread_join(thread_menu, NULL);
+	pthread_join(thread_loop, NULL);
 
-	pthread_cancel(thread_loop);
+	pthread_mutex_destroy(&mloop);
 }
 
 #endif // #ifdef USE_THREADED_TEST
