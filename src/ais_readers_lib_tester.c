@@ -382,10 +382,10 @@ void log_get_by_index(DEV_HND dev)
 	printf("AIS_GetLogByIndex(pass: %s | [%d - %d]> %s\n", pass, start_index,
 			end_index, dl_status2str(dev->status));
 
-	DoCmd(dev);
-
 	if (dev->status)
 		return;
+
+	DoCmd(dev);
 
 	print_log(dev);
 }
@@ -420,10 +420,10 @@ void log_get_by_time(DEV_HND dev)
 	printf("AIS_GetLogByTime(pass: %s | [%d - %d]> %s\n", pass, start_time,
 			end_time, dl_status2str(dev->status));
 
-	DoCmd(dev);
-
 	if (dev->status)
 		return;
+
+	DoCmd(dev);
 
 	print_log(dev);
 }
@@ -607,6 +607,8 @@ bool MainLoop(DEV_HND dev)
 	{
 		printf("\n-- [%d] COMMAND FINISH !\n", dev->idx);
 		print = true;
+
+		dev->cmd_finish = true;
 	}
 
 	if (print)
@@ -617,6 +619,11 @@ bool MainLoop(DEV_HND dev)
 
 void DoCmd(DEV_HND dev)
 {
+	if (dev->status)
+		return;
+
+	dev->cmd_finish = false;
+
 	dev->print_percent_hdr = true;
 
 	do
@@ -624,7 +631,9 @@ void DoCmd(DEV_HND dev)
 		if (!MainLoop(dev))
 			break;
 
-	} while (!dev->cmdResponses);
+		// TODO : timeout
+
+	} while (!dev->cmd_finish);
 }
 
 void rte_listen(DEV_HND dev, int seconds)

@@ -67,6 +67,8 @@ typedef struct S_DEVICE
 	log_t log;
 	//--------------------
 
+	bool cmd_finish;
+
 } device_t, *DEV_HND;
 
 void get_list_info(void);
