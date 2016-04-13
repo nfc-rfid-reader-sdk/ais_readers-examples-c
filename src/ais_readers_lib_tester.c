@@ -15,7 +15,7 @@
 
 #include <pthread.h>
 
-#define MINIMAL_LIB_VERSION			"4.9.6"
+#define MINIMAL_LIB_VERSION			"4.9.7"
 
 #define MENU_COL_WIDTH		30
 #define MENU_COL_NUMBER		3
@@ -61,6 +61,13 @@ void wr_status_(DL_STATUS status, const char * pre_msg)
 	fflush(stdout);
 }
 
+struct S_PROGRESS
+{
+	bool print_hdr;
+	int percent_old;
+} progress =
+{ true, -1 };
+
 void print_percent_hdr_(void)
 {
 	int i;
@@ -71,6 +78,40 @@ void print_percent_hdr_(void)
 		printf("%d", i % 10);
 	}
 	printf("\n%%=");
+}
+
+// not thread safe
+void print_percent(int Percent)
+{
+	bool flush_out = false;
+
+	if (progress.print_hdr)
+	{
+		print_percent_hdr_();
+
+		progress.print_hdr = false;
+		progress.percent_old = -1;
+
+		flush_out = true;
+	}
+
+	while (progress.percent_old != Percent)
+	{
+//			printf("AIS_DoCmd(): "
+//					"cmd_finish= %d | percent= %3d (old= %d) || %s\n",
+//					dev->cmdResponses, dev->cmdPercent, dev->percent_old,
+//					dl_status2str(dev->status));
+
+		if (progress.percent_old < 100)
+			putchar('.');
+
+		progress.percent_old++;
+
+		flush_out = true;
+	}
+
+	if (flush_out)
+		fflush(stdout);
 }
 
 int getchar_(void)
@@ -592,28 +633,7 @@ bool MainLoop(DEV_HND dev)
 
 	if (dev->cmdPercent)
 	{
-		if (dev->print_percent_hdr)
-		{
-			print_percent_hdr_();
-			dev->percent_old = -1;
-
-			dev->print_percent_hdr = false;
-		}
-
-		while (dev->percent_old != dev->cmdPercent)
-		{
-//			printf("AIS_DoCmd(): "
-//					"cmd_finish= %d | percent= %3d (old= %d) || %s\n",
-//					dev->cmdResponses, dev->cmdPercent, dev->percent_old,
-//					dl_status2str(dev->status));
-
-			if (dev->percent_old < 100)
-				putchar('.');
-
-			dev->percent_old++;
-
-			print = true;
-		}
+		print_percent(dev->cmdPercent);
 	}
 
 	if (dev->cmdResponses)
@@ -639,7 +659,7 @@ void DoCmd(DEV_HND dev)
 
 	dev->cmd_finish = false;
 
-	dev->print_percent_hdr = true;
+	progress.print_hdr = true;
 
 	do
 	{
@@ -932,6 +952,29 @@ void test_light(DEV_HND dev)
 
 }
 
+void fw_update(DEV_HND dev)
+{
+	char fw_name[1024];
+
+	puts("Flashing firmware part.");
+	puts("Flash firmware for selected device.");
+	printf("Enter full firmware BIN filename: ");
+	fflush(stdout);
+
+	int r = scanf("%s", fw_name);
+	if (r <= 0)
+	{
+		puts("Error while getting file name !");
+		return;
+	}
+
+	progress.print_hdr = true;
+
+	dev->status = AIS_FW_Update(dev->hnd, fw_name, print_percent);
+
+	printf("\nAIS_FW_Update(%s)> %s\n", fw_name, dl_status2str(dev->status));
+}
+
 void print_datatype_size(void)
 {
 	printf("sizeof(bool)= %d\n", (int) sizeof(bool));
@@ -1042,6 +1085,7 @@ struct S_TEST_MENU
 { 'y', "Relay toggle state", relay_toggle, true },
 { 'E', "EERPOM LOCK", ee_lock, true },
 { 'e', "EERPOM UNLOCK", ee_unlock, true },
+{ 'F', "Firmware update", fw_update, true },
 
 };
 
