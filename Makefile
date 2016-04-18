@@ -4,8 +4,6 @@
 ####################################################################
 $(VERBOSE).SILENT:
 ####################################################################
-LIBVER = testing/ver.4.9.7
-####################################################################
 
 help : info_ver
 	echo "* For compile tester on Linux,   type : make linux   or make lin"
@@ -13,11 +11,11 @@ help : info_ver
 	echo "* For compile tester on OS X,    type : make osx"
 
 OUTDIR = Out
-LIBPATH = lib/$(LIBVER)
+LIBPATH = lib
 
 info_ver :
 	echo --------------------------------------------------------------------
-	echo Compile tester for AIS READERS library : $(LIBVER)
+	echo Compile Tester for AIS Readers library
 	echo --------------------------------------------------------------------
 
 test_folder:
