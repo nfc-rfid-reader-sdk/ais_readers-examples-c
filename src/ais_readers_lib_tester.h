@@ -5,8 +5,8 @@
  *      Author: SrkoS
  *
  * ABCDEFGHIJKLMNOPQRSTUVWXYZ
- * -*--***----+-*-**--*--*---
- * -**-*-***--*-*****-**-***-
+ * -*--***----+-*-**-**--*---
+ * -**-*-***--*-********-***-
  * abcdefghijklmnopqrstuvwxyz
  *
  * 1234567890
@@ -59,6 +59,9 @@ typedef struct S_DEVICE
 	int Status; // additional status
 
 	//--------------------
+	c_string SN; // device serial number
+	int ID; // device identification number (master)
+	//--------------------
 	uint32_t relay_state;
 	//--------------------
 	log_t log;
@@ -83,6 +86,13 @@ void DoCmd(DEV_HND dev);
 
 void wr_status_(DL_STATUS status, const char * pre_msg);
 #define wr_status(pre_msg) wr_status_(dev->status,pre_msg)
-char * get_string(void);
+
+/**
+ *
+ * @param skip_enter if true - f can return only enter
+ *
+ * @return
+ */
+char * get_string(bool skip_enter);
 
 #endif /* AIS_READERS_LIB_TESTER_H_ */

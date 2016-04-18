@@ -15,7 +15,7 @@
 
 #include <pthread.h>
 
-#define MINIMAL_LIB_VERSION			"4.9.7"
+#define MINIMAL_LIB_VERSION			"4.9.8"
 
 #define MENU_COL_WIDTH		30
 #define MENU_COL_NUMBER		3
@@ -129,17 +129,30 @@ int getchar_(void)
 	return selector;
 }
 
-char * get_string(void)
+char * get_string(bool skip_enter)
 {
 	static char buff[4096] = "";
 	char *result;
 	int len;
 
+	fflush(stdin);
+
 	do
 	{
 		result = fgets(buff, sizeof(buff), stdin);
 		len = strlen(buff);
-		if (result != NULL && buff[len - 1] == '\n')
+
+		if (!result)
+		{
+			// handle error
+			puts("Error while getting line. Exit.");
+			return 0;
+		}
+
+		if (!skip_enter)
+			break;
+
+		if (buff[len - 1] == '\n')
 		{
 			buff[len - 1] = '\0';
 			if (len == 1)
@@ -147,12 +160,7 @@ char * get_string(void)
 			else
 				break;
 		}
-		else
-		{
-			// handle error
-			puts("Error while getting line. Exit.");
-			return 0;
-		}
+
 	} while (true);
 
 	return buff;
@@ -507,7 +515,7 @@ void whitelist_write(DEV_HND dev)
 	printf("White-list UIDs: ");
 	fflush(stdout);
 
-	wl = get_string();
+	wl = get_string(true);
 	if (!wl)
 	{
 		puts("Error while getting line of UIDs. Exit.");
@@ -549,7 +557,7 @@ void blacklist_write(DEV_HND dev)
 	printf("Enter Black-list numbers: ");
 	fflush(stdout);
 
-	bl = get_string();
+	bl = get_string(true);
 	if (!bl)
 	{
 		puts("Error while getting line of numbers. Exit.");
@@ -975,6 +983,70 @@ void fw_update(DEV_HND dev)
 	printf("\nAIS_FW_Update(%s)> %s\n", fw_name, dl_status2str(dev->status));
 }
 
+void config_file_rd(DEV_HND dev)
+{
+	char file_name[1024];
+
+	if (!dev)
+		return;
+
+	sprintf(file_name, "BaseHD-%s-ID%d-", dev->SN, dev->ID);
+
+	time_t rawtime = time(0);
+	struct tm * timeinfo = localtime(&rawtime);
+	strftime(file_name + strlen(file_name), sizeof(file_name), "%Y%m%d_%H%M%S",
+			timeinfo);
+
+	strcat(file_name, ".config");
+
+	puts("Read configuration from the device - to the file");
+	printf("Config file - enter for default [%s] : ", file_name);
+	fflush(stdout);
+
+	// get new filename
+	char * get_new_name = get_string(false);
+
+	if (!get_new_name)
+	{
+		puts("No valid file name");
+		return;
+	}
+
+	//------------------------
+	if (*get_new_name != '\n')
+		strcpy(file_name, get_new_name);
+
+	printf("AIS_Config_Read(file: %s)\n", file_name);
+	dev->status = AIS_Config_Read(dev->hnd, pass, file_name);
+	wr_status("AIS_Config_Read");
+}
+
+void config_file_wr(DEV_HND dev)
+{
+	char file_name[1024] = "BaseHD-xxx.config";
+
+	puts("Store configuration from file to the device");
+	printf("Config file - enter for default [%s] : ", file_name);
+	fflush(stdout);
+
+	// get new filename
+	char * get_new_name = get_string(false);
+
+	if (!get_new_name)
+	{
+		puts("No valid file name");
+		return;
+	}
+
+	//------------------------
+	if (*get_new_name != '\n')
+		strcpy(file_name, get_new_name);
+
+	printf("AIS_Config_Send(file: %s)\n", file_name);
+	dev->status = AIS_Config_Send(dev->hnd, file_name);
+	wr_status("AIS_Config_Send");
+}
+
 void print_datatype_size(void)
 {
 	printf("sizeof(bool)= %d\n", (int) sizeof(bool));
@@ -1086,6 +1158,8 @@ struct S_TEST_MENU
 { 'E', "EERPOM LOCK", ee_lock, true },
 { 'e', "EERPOM UNLOCK", ee_unlock, true },
 { 'F', "Firmware update", fw_update, true },
+{ 's', "Settings read to file", config_file_rd, true },
+{ 'S', "Settings write from file", config_file_wr, true },
 
 };
 

@@ -97,9 +97,7 @@ int destroy_devices(void)
 void get_list_info(void)
 {
 	DL_STATUS status;
-	c_string Device_Serial; //// device serial number
 	int Device_Type; //// device type
-	int Device_ID; //// device identification number (master)
 	int Device_FW_VER; //// version of firmware
 	int Device_CommSpeed; //
 	c_string Device_FTDI_Serial; //// FTDI COM port identification
@@ -131,8 +129,8 @@ void get_list_info(void)
 		dh->idx = i + 1;
 
 		// serial, Type, GetFTDISerial, FTDIDescription, HND
-		status = AIS_List_GetInformation(&dh->hnd, &Device_Serial, &Device_Type,
-				&Device_ID, &Device_FW_VER, &Device_CommSpeed,
+		status = AIS_List_GetInformation(&dh->hnd, &dh->SN, &Device_Type,
+				&dh->ID, &Device_FW_VER, &Device_CommSpeed,
 				&Device_FTDI_Serial, &dh->open, &Device_Status,
 				&System_Status);
 
@@ -143,8 +141,8 @@ void get_list_info(void)
 			continue;
 		}
 
-		printf(format, dh->idx, dh->hnd, Device_Serial, Device_Type,
-				Device_Type, Device_ID, Device_FW_VER, Device_CommSpeed,
+		printf(format, dh->idx, dh->hnd, dh->SN, Device_Type,
+				Device_Type, dh->ID, Device_FW_VER, Device_CommSpeed,
 				Device_FTDI_Serial, dh->open, Device_Status,
 				System_Status);
 	}
@@ -247,7 +245,7 @@ void edit_device_list__help()
 	puts(" 5 / - / e : erase device from checking list");
 }
 
-void do_dev_action(DL_API DL_STATUS (*dev_f)(int type, int id))
+void do_dev_action(DL_API DL_STATUS (*dev_f)(int type, int ID))
 {
 	DL_STATUS status;
 	int r;
