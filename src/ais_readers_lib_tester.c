@@ -39,7 +39,7 @@ bool do_main = true;
 #ifdef USE_LOCK_MAINLOOP
 pthread_mutex_t mloop;
 #	define LOCK()		pthread_mutex_lock(&mloop)
-#	define UNLOCK()		pthread_mutex_unlock(&mloop)
+#	define UNLOCK()	pthread_mutex_unlock(&mloop)
 #else
 #	define LOCK()
 #	define UNLOCK()
