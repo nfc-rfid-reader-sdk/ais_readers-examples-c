@@ -22,6 +22,7 @@
 //#define DEV_MIN_PRINTS
 
 #define USE_THREADED_TEST
+//#define USE_LOCK_MAINLOOP
 
 typedef struct S_LOG
 {
@@ -44,6 +45,7 @@ typedef struct S_DEVICE
 	int open;
 
 	DL_STATUS status;
+	DL_STATUS status_last; // print
 
 	// event part
 	int RealTimeEvents; // indicate new RealTimeEvent(s)

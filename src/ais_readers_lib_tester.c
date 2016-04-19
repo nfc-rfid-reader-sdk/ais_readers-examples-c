@@ -36,7 +36,14 @@ char new_pass[64] = //
 
 bool do_main = true;
 
+#ifdef USE_LOCK_MAINLOOP
 pthread_mutex_t mloop;
+#	define LOCK()		pthread_mutex_lock(&mloop)
+#	define UNLOCK()		pthread_mutex_unlock(&mloop)
+#else
+#	define LOCK()
+#	define UNLOCK()
+#endif
 
 //------------------------------------------------------------------
 static c_string prn_format = "%4d |%34s| %5d | %7d | %5d";
@@ -395,8 +402,12 @@ void print_rte(DEV_HND dev)
 	wr_status("AIS_ReadRTE()");
 }
 
-void log_get(DEV_HND dev)
+void log_get(DEV_HND _dev)
 {
+	device_t device_local;
+	DEV_HND dev = &device_local;
+	memcpy(dev, _dev, sizeof(device_t));
+
 	dev->status = AIS_GetLog(dev->hnd, pass);
 	wr_status("AIS_GetLog_Set()");
 
@@ -408,11 +419,15 @@ void log_get(DEV_HND dev)
 	print_log(dev);
 }
 
-void log_get_by_index(DEV_HND dev)
+void log_get_by_index(DEV_HND _dev)
 {
 	uint32_t start_index = 2;
 	uint32_t end_index = 5;
 	int r;
+
+	device_t device_local;
+	DEV_HND dev = &device_local;
+	memcpy(dev, _dev, sizeof(device_t));
 
 	puts("Read LOG by Index:");
 
@@ -445,11 +460,15 @@ void log_get_by_index(DEV_HND dev)
 	print_log(dev);
 }
 
-void log_get_by_time(DEV_HND dev)
+void log_get_by_time(DEV_HND _dev)
 {
 	uint32_t start_time = 1414670812;
 	uint32_t end_time = 1414670830;
 	int r;
+
+	device_t device_local;
+	DEV_HND dev = &device_local;
+	memcpy(dev, _dev, sizeof(device_t));
 
 	puts("Read LOG by Time (time-stamp) range:");
 
@@ -581,7 +600,7 @@ bool MainLoop(DEV_HND dev)
 	if (!dev)
 		return false;
 
-	pthread_mutex_lock(&mloop);
+	LOCK();
 
 	dev->status = AIS_MainLoop(dev->hnd, //
 			&dev->RealTimeEvents, &dev->LogAvailable, &dev->LogUnread, //
@@ -591,10 +610,13 @@ bool MainLoop(DEV_HND dev)
 
 	if (dev->status)
 	{
-		if (dev->status != RESOURCE_BUSY)
+		if (dev->status_last != dev->status)
+		{
 			wr_status("AIS_MainLoop()");
+			dev->status_last = dev->status;
+		}
 
-		pthread_mutex_unlock(&mloop);
+		UNLOCK();
 
 		return false;
 	}
@@ -655,7 +677,7 @@ bool MainLoop(DEV_HND dev)
 	if (print)
 		fflush(stdout);
 
-	pthread_mutex_unlock(&mloop);
+	UNLOCK();
 
 	return true;
 }
@@ -1257,6 +1279,7 @@ void threads(void)
 	pthread_t thread_menu;
 	int iret1, iret2;
 
+#ifdef USE_LOCK_MAINLOOP
 	int r = pthread_mutex_init(&mloop, NULL);
 	if (r)
 	{
@@ -1264,6 +1287,7 @@ void threads(void)
 
 		return;
 	}
+#endif
 
 	iret1 = pthread_create(&thread_loop, NULL, thread_mainloop,
 			"thread_mainloop");
@@ -1295,7 +1319,9 @@ void threads(void)
 	pthread_join(thread_menu, NULL);
 	pthread_join(thread_loop, NULL);
 
+#ifdef USE_LOCK_MAINLOOP
 	pthread_mutex_destroy(&mloop);
+#endif
 }
 
 #endif // #ifdef USE_THREADED_TEST
