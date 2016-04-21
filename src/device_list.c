@@ -252,10 +252,55 @@ bool load_list_from_file(void)
 	return false;
 }
 
+void list_for_check_print(void)
+{
+	c_string rv = AIS_List_GetDevicesForCheck();
+
+	if (!rv)
+		return;
+
+	if (!strlen(rv))
+		return; // nothing to print
+
+#if LIST_DEVICE_PRINT_ONLY_IN_NUMBER_FORMAT
+
+	puts(rv);
+
+#else
+
+	char * prv = (char *) rv;
+
+	// TODO: print in table format with header
+
+	while (true)
+	{
+		int dev_type;
+		int dev_id;
+
+		int r = sscanf(prv, "%d:%d", &dev_type, &dev_id);
+		if (r != 2)
+			break;
+
+		c_string dev_type_str;
+		DL_STATUS status = device_type_enum2str(dev_type, &dev_type_str);
+		if (status)
+			continue;
+
+		printf("   %20s (enum= %d) on ID %d\n", dev_type_str, dev_type, dev_id);
+
+		prv = strchr(prv, '\n');
+		if (prv)
+			prv++;
+		else
+			break;
+	}
+#endif
+}
+
 void prepare_list_for_check()
 {
 	puts("AIS_List_GetDevicesForCheck() BEFORE / DLL STARTUP");
-	puts(AIS_List_GetDevicesForCheck());
+	list_for_check_print();
 
 	AIS_List_EraseAllDevicesForCheck();
 
@@ -266,7 +311,7 @@ void prepare_list_for_check()
 	}
 
 	puts("AIS_List_GetDevicesForCheck() AFTER LIST UPDATE");
-	puts(AIS_List_GetDevicesForCheck());
+	list_for_check_print();
 }
 
 void print_known_device_types()
