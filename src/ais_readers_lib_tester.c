@@ -15,7 +15,7 @@
 
 #include <pthread.h>
 
-#define MINIMAL_LIB_VERSION			"4.9.9.1"
+#define MINIMAL_LIB_VERSION			"4.9.9.2"
 
 #define MENU_COL_WIDTH		30
 #define MENU_COL_NUMBER		3
@@ -1071,7 +1071,16 @@ void config_file_wr(DEV_HND dev)
 
 void print_datatype_size(void)
 {
-	printf("sizeof(bool)= %d\n", (int) sizeof(bool));
+	puts("-------------------------------------------------------");
+	puts("Size of types:");
+	printf("\t<DL_STATUS> = %d B\n", (int) sizeof(DL_STATUS));
+	printf("\t<device_e>  = %d B\n", (int) sizeof(device_e));
+	printf("\t<HND_AIS>   = %d B\n", (int) sizeof(HND_AIS));
+	printf("\t<void *>    = %d B\n", (int) sizeof(HND_AIS));
+	printf("\t<bool>      = %d B\n", (int) sizeof(bool));
+	printf("\t<int>       = %d B\n", (int) sizeof(int));
+	printf("\t<char>      = %d B\n", (int) sizeof(char));
+	puts("-------------------------------------------------------");
 }
 
 void test_device(DEV_HND dev)

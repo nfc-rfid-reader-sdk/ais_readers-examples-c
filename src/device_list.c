@@ -322,7 +322,7 @@ void edit_device_list__help()
 	puts(" 5 / - / e : erase device from checking list");
 }
 
-void do_dev_action(DL_API DL_STATUS (*dev_f)(int type, int ID))
+void do_dev_action(DL_API DL_STATUS (*dev_f)(device_e type, int ID))
 {
 	DL_STATUS status;
 	int r;
