@@ -169,13 +169,87 @@ void get_list_info(void)
 	puts("Device [1] is selected for active");
 }
 
-void add_device(int device_type, int device_id)
+bool add_device(int device_type, int device_id)
 {
 	DL_STATUS status;
 
 	status = AIS_List_AddDeviceForCheck(device_type, device_id);
 	printf("AIS_List_AddDeviceForCheck(type: %d, id: %d)> { %s }\n",
 			device_type, device_id, dl_status2str(status));
+
+	return status ? false : true;
+}
+
+bool load_list_from_file(void)
+{
+	const char *list_fn = "readers.ini";
+	char linebuff[1024] = "";
+	int added_dev_type = 0;
+	DL_STATUS status;
+	int r;
+
+	FILE *fini = fopen(list_fn, "r");
+
+	if (!fini)
+	{
+		fprintf(stderr, "File <%s> not found.\n", list_fn);
+
+		return false;
+	}
+
+	while (true)
+	{
+		char * retp = fgets(linebuff, 1023, fini);
+
+		if (!retp)
+			break;
+
+		// skip # character and whitespace
+		if (linebuff[0] == '#')
+			continue;
+
+		device_e dev_type_enum;
+		char dev_type_str[256];
+		int dev_id;
+
+		// replace : with space
+		retp = strchr(linebuff, ':');
+		if (retp)
+		{
+			*retp = ' ';
+		}
+		else
+		{
+			// ? TYPE ID ? or
+			continue; // TYPE:ID only ?
+		}
+
+		r = sscanf(linebuff, "%s %d", dev_type_str, &dev_id);
+		if (r != 2)
+		{
+			// error ...
+			continue;
+		}
+
+		status = device_type_str2enum(dev_type_str, &dev_type_enum);
+		if (status)
+		{
+			// error ...
+			continue;
+		}
+
+		if (add_device(dev_type_enum, dev_id))
+			added_dev_type++;
+	}
+
+	fclose(fini);
+
+	if (added_dev_type)
+		return true;
+
+	fprintf(stderr, "Error. No device is added in the list...\n");
+
+	return false;
 }
 
 void prepare_list_for_check()
@@ -185,8 +259,11 @@ void prepare_list_for_check()
 
 	AIS_List_EraseAllDevicesForCheck();
 
-	puts("Tester try to connect with a Base HD device on any/unknown ID");
-	add_device(DL_AIS_BASE_HD_SDK, 0);
+	if (!load_list_from_file())
+	{
+		puts("Tester try to connect with a Base HD device on any/unknown ID");
+		add_device(DL_AIS_BASE_HD_SDK, 0);
+	}
 
 	puts("AIS_List_GetDevicesForCheck() AFTER LIST UPDATE");
 	puts(AIS_List_GetDevicesForCheck());

@@ -15,7 +15,7 @@
 
 #include <pthread.h>
 
-#define MINIMAL_LIB_VERSION			"4.9.9"
+#define MINIMAL_LIB_VERSION			"4.9.9.1"
 
 #define MENU_COL_WIDTH		30
 #define MENU_COL_NUMBER		3
@@ -39,7 +39,7 @@ bool do_main = true;
 #ifdef USE_LOCK_MAINLOOP
 pthread_mutex_t mloop;
 #	define LOCK()		pthread_mutex_lock(&mloop)
-#	define UNLOCK()	pthread_mutex_unlock(&mloop)
+#	define UNLOCK()		pthread_mutex_unlock(&mloop)
 #else
 #	define LOCK()
 #	define UNLOCK()
