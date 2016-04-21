@@ -15,7 +15,7 @@
 
 #include <pthread.h>
 
-#define MINIMAL_LIB_VERSION			"4.9.8"
+#define MINIMAL_LIB_VERSION			"4.9.9"
 
 #define MENU_COL_WIDTH		30
 #define MENU_COL_NUMBER		3

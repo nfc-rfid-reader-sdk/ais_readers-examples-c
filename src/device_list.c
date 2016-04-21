@@ -399,9 +399,10 @@ void list_device(DEV_HND dev) // Parameter is irrelevant
 
 	puts("checking... please wait...");
 
-	device_count = AIS_List_UpdateAndGetCount();
+	DL_STATUS status = AIS_List_UpdateAndGetCount(&device_count);
 
-	printf("AIS_List_UpdateAndGetCount()= %d\n", device_count);
+	printf("AIS_List_UpdateAndGetCount( %d ):> %s\n", device_count,
+			dl_status2str(status));
 
 	if (device_count)
 		get_list_info();
