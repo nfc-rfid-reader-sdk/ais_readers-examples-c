@@ -15,7 +15,7 @@
 
 #include <pthread.h>
 
-#define MINIMAL_LIB_VERSION			"4.9.9.2"
+#define MINIMAL_LIB_VERSION			"4.9.10.3"
 
 #define MENU_COL_WIDTH		30
 #define MENU_COL_NUMBER		3
@@ -676,7 +676,7 @@ bool MainLoop(DEV_HND dev)
 
 	if (dev->DeviceStatus_last != dev->DeviceStatus)
 	{
-		printf("\n-- Device Status: 0x%08X !\n", (uint32_t) dev->DeviceStatus);
+		puts(dbg_DeviceStatus2Str(dev->DeviceStatus));
 		print = true;
 
 		dev->DeviceStatus_last = dev->DeviceStatus;
@@ -1077,6 +1077,19 @@ void config_file_wr(DEV_HND dev)
 	wr_status("AIS_Config_Send");
 }
 
+void debug_info(DEV_HND dev)
+{
+	uint32_t reset_counter;
+
+	dev->status = AIS_GetDeviceResetCounter(dev->hnd, &reset_counter);
+
+	printf("AIS_GetDeviceResetCounter(= %d):> %s\n", reset_counter,
+			dl_status2str(dev->status));
+
+	//-------------
+
+}
+
 void print_datatype_size(void)
 {
 	puts("-------------------------------------------------------");
@@ -1199,6 +1212,8 @@ struct S_TEST_MENU
 { 'F', "Firmware update", fw_update, true },
 { 's', "Settings read to file", config_file_rd, true },
 { 'S', "Settings write from file", config_file_wr, true },
+//
+{ 'D', "Device debug information", debug_info, true },
 
 };
 
