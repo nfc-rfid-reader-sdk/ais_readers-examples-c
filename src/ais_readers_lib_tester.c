@@ -674,6 +674,14 @@ bool MainLoop(DEV_HND dev)
 		dev->cmd_finish = true;
 	}
 
+	if (dev->DeviceStatus_last != dev->DeviceStatus)
+	{
+		printf("\n-- Device Status: 0x%08X !\n", (uint32_t) dev->DeviceStatus);
+		print = true;
+
+		dev->DeviceStatus_last = dev->DeviceStatus;
+	}
+
 	if (print)
 		fflush(stdout);
 

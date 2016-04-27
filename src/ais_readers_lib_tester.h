@@ -57,6 +57,7 @@ typedef struct S_DEVICE
 	int cmdPercent; // indicate percent of command execution
 	// status part
 	int DeviceStatus;
+	int DeviceStatus_last;
 	int TimeoutOccurred; // debug only
 	int Status; // additional status
 
@@ -69,7 +70,7 @@ typedef struct S_DEVICE
 	log_t log;
 	//--------------------
 
-	bool cmd_finish;
+	bool cmd_finish; // same as cmdResponses
 
 } device_t, *DEV_HND;
 
