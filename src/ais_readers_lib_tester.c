@@ -15,7 +15,7 @@
 
 #include <pthread.h>
 
-#define MINIMAL_LIB_VERSION			"4.9.10.3"
+#define MINIMAL_LIB_VERSION			"4.9.10.4"
 
 #define MENU_COL_WIDTH		30
 #define MENU_COL_NUMBER		3
@@ -1090,6 +1090,13 @@ void debug_info(DEV_HND dev)
 
 }
 
+void reset_device(DEV_HND dev)
+{
+	dev->status = AIS_Restart(dev->hnd);
+
+	printf("AIS_Restart():> %s\n", dl_status2str(dev->status));
+}
+
 void print_datatype_size(void)
 {
 	puts("-------------------------------------------------------");
@@ -1214,6 +1221,7 @@ struct S_TEST_MENU
 { 'S', "Settings write from file", config_file_wr, true },
 //
 { 'D', "Device debug information", debug_info, true },
+{ 'R', "Reset Device", reset_device, true },
 
 };
 
