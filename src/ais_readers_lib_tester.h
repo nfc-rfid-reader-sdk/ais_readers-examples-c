@@ -16,7 +16,7 @@
 #ifndef AIS_READERS_LIB_TESTER_H_
 #define AIS_READERS_LIB_TESTER_H_
 
-#include <ais_readers.h>
+#include "device_cmd.h"
 
 // define in IDE
 //#define DEV_MIN_PRINTS
@@ -24,71 +24,16 @@
 #define USE_THREADED_TEST
 //#define USE_LOCK_MAINLOOP
 
-typedef struct S_LOG
-{
-	int index; //
-	int action; //
-	int reader_id; //
-	int card_id; //
-	int system_id; //
-	uint8_t nfc_uid[NFC_UID_MAX_LEN]; //
-	int nfc_uid_len; // NFC UID length
-	uint64_t timestamp; //
-} log_t;
-
-typedef struct S_DEVICE
-{
-	int idx; // index start from 1
-
-	HND_AIS hnd;
-
-	int open;
-
-	DL_STATUS status;
-	DL_STATUS status_last; // print
-
-	// event part
-	int RealTimeEvents; // indicate new RealTimeEvent(s)
-	int LogAvailable; // indicate new data in log buffer
-	int LogUnread; //
-	int LogUnread_last; //
-	// command part
-	int cmdResponses; // indicate command finish
-	int cmdPercent; // indicate percent of command execution
-	// status part
-	int DeviceStatus;
-	int DeviceStatus_last;
-	int TimeoutOccurred; // debug only
-	int Status; // additional status
-
-	//--------------------
-	c_string SN; // device serial number
-	int ID; // device identification number (master)
-	//--------------------
-	uint32_t relay_state;
-	//--------------------
-	log_t log;
-	//--------------------
-
-	bool cmd_finish; // same as cmdResponses
-
-} device_t, *DEV_HND;
-
 void get_list_info(void);
 
 void get_info(DEV_HND dev);
 
 void password_change(DEV_HND dev);
 
-void time_get(DEV_HND dev);
-void time_set(DEV_HND dev);
 
 void DoCmd(DEV_HND dev);
 
 //--------------------
-
-void wr_status_(DL_STATUS status, const char * pre_msg);
-#define wr_status(pre_msg) wr_status_(dev->status,pre_msg)
 
 /**
  *
