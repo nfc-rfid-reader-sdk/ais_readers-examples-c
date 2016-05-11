@@ -160,7 +160,7 @@ void get_list_info(void)
 
 		open_device(dh);
 
-		time_get(dh);
+//		time_get(dh);
 	}
 
 #endif // #ifdef DEV_AUTO_OPEN
