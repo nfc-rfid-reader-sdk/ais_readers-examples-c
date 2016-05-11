@@ -13,6 +13,8 @@
 #include <string.h>
 #include <ctype.h>
 
+#include "app_common.h"
+
 int device_count;
 DEV_HND device_active = NULL;
 

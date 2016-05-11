@@ -12,16 +12,17 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-
 #include <pthread.h>
+
+#include "ais_readers_lib_tester.h"
+#include "device_list.h"
+#include "app_common.h"
 
 #define MINIMAL_LIB_VERSION			"4.9.10.4"
 
 #define MENU_COL_WIDTH		30
 #define MENU_COL_NUMBER		3
 
-#include "ais_readers_lib_tester.h"
-#include "device_list.h"
 
 #define DEFAULT_RTE_TIME			10
 //---------------------------------------------------------
@@ -61,12 +62,6 @@ static c_string hdr[] =
 //------------------------------------------------------------------
 char tmpstr[64];
 //------------------------------------------------------------------
-//------------------------------------------------------------------
-void wr_status_(DL_STATUS status, const char * pre_msg)
-{
-	puts(dbg_prn_status(status, pre_msg));
-	fflush(stdout);
-}
 
 struct S_PROGRESS
 {
@@ -246,43 +241,6 @@ void password_set_default(DEV_HND dev)
 
 //------------------------------------------------------------------
 
-void ee_lock(DEV_HND dev)
-{
-	dev->status = AIS_EE_WriteProtect(dev->hnd, pass);
-	wr_status("EEPROM Lock - AIS_EE_WriteProtect()");
-}
-
-void ee_unlock(DEV_HND dev)
-{
-	dev->status = AIS_EE_WriteUnProtect(dev->hnd, pass);
-	wr_status("EEPROM Unlock - AIS_EE_WriteUnProtect()");
-}
-
-//------------------------------------------------------------------
-
-void time_get(DEV_HND dev)
-{
-	uint64_t current_time = 0;
-	int time_zone;
-	int DST;
-	int offset;
-
-	dev->status = AIS_GetTime(dev->hnd, &current_time, &time_zone, &DST,
-			&offset);
-	if (dev->status)
-	{
-		wr_status("AIS_GetTime()");
-		return;
-	}
-
-	printf("AIS_GetTime(dev=%p)> %s= (tz= %d | dst= %d | offset= %d)> %s\n\n",
-			dev->hnd, dl_status2str(dev->status), time_zone, DST, offset,
-			dbg_GMT2str(current_time));
-
-#ifndef DEV_MIN_PRINTS
-	puts(sys_get_timezone_info());
-#endif
-}
 
 #define PRNVAR(var) printf( #var " (%d)= %d\n", (int) sizeof(var), (int) var);
 
@@ -1020,14 +978,8 @@ void config_file_rd(DEV_HND dev)
 	if (!dev)
 		return;
 
-	sprintf(file_name, "BaseHD-%s-ID%d-", dev->SN, dev->ID);
-
-	time_t rawtime = time(0);
-	struct tm * timeinfo = localtime(&rawtime);
-	strftime(file_name + strlen(file_name), sizeof(file_name), "%Y%m%d_%H%M%S",
-			timeinfo);
-
-	strcat(file_name, ".config");
+	sprintf(file_name, "BaseHD-%s-ID%d-%s.config", dev->SN, dev->ID,
+			time_now_str());
 
 	puts("Read configuration from the device - to the file");
 	printf("Config file - enter for default [%s] : ", file_name);

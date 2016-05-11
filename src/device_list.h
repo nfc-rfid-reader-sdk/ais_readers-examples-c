@@ -7,7 +7,7 @@
 #ifndef DEVICE_LIST_H_
 #define DEVICE_LIST_H_
 
-#include "ais_readers_lib_tester.h"
+#include "device_struct.h"
 
 #define DEV_AUTO_OPEN
 
