@@ -16,7 +16,7 @@
 #ifndef AIS_READERS_LIB_TESTER_H_
 #define AIS_READERS_LIB_TESTER_H_
 
-#include "device_cmd.h"
+#include "app_common.h"
 
 // define in IDE
 //#define DEV_MIN_PRINTS

@@ -8,6 +8,8 @@
 #define APP_COMMON_H_
 
 #include "device_struct.h"
+#include "device_list.h"
+#include "device_cmd.h"
 
 //
 extern char pass[64];

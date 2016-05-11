@@ -15,8 +15,6 @@
 #include <pthread.h>
 
 #include "ais_readers_lib_tester.h"
-#include "device_list.h"
-#include "app_common.h"
 
 #define MINIMAL_LIB_VERSION			"4.9.10.4"
 
