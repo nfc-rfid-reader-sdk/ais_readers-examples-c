@@ -114,6 +114,8 @@ int getchar_(void)
 {
 	int selector;
 
+	fflush(stdout);
+
 	do
 	{
 		selector = getchar();
@@ -904,7 +906,6 @@ void test_light(DEV_HND dev)
 	do
 	{
 		puts(hlp);
-		fflush(stdout);
 
 		switch (getchar_())
 		{
@@ -1176,7 +1177,6 @@ void print_menu()
 	int i;
 
 	puts("\n------------------------------");
-	puts("Press key - select action :");
 
 	for (i = 0; i < CMD_CNT; ++i)
 	{
@@ -1203,9 +1203,7 @@ int menu_switch(void)
 
 	do
 	{
-#ifndef DEV_MIN_PRINTS
-		print_menu();
-#endif // #ifndef DEV_MIN_PRINTS
+		puts("Press key - select action ( < h > for help ) :");
 
 		selector = getchar_();
 
