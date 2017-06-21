@@ -25,7 +25,7 @@ test_folder:
 	-mkdir -p $(OUTDIR)/linux/x86_64
 	-mkdir -p $(OUTDIR)/linux/arm
 	-mkdir -p $(OUTDIR)/linux/arm-hf
-	-mkdir -p $(OUTDIR)/osx/x86
+	-mkdir -p $(OUTDIR)/osx/x86_64
 
 rm_obj :
 	-rm -f src/*.o
@@ -49,8 +49,8 @@ osx : info_ver osx_ rm_obj
 ####################################################################
 
 osx_ : pre_test
-	gcc -arch i386 -arch x86_64 -o $(OUTDIR)/osx/x86/ais_readers_lib_tester -I$(LIBPATH)/include -L$(LIBPATH)/osx/x86 -D__linux__=2 src/*.c -lais_readers
-	echo Tester for Intel OSX is created in $(OUTDIR)/osx/x86
+	gcc -o $(OUTDIR)/osx/x86_64/ais_readers_lib_tester -I$(LIBPATH)/include -L$(LIBPATH)/osx/x86_64 -D__linux__=2 src/*.c -lais_readers
+	echo Tester for Intel OSX is created in $(OUTDIR)/osx/x86_64
 
 lin32 : pre_test
 	gcc -m32 -o $(OUTDIR)/linux/x86/ais_readers_lib_tester-x86 -I$(LIBPATH)/include -L$(LIBPATH)/linux/x86 src/*.c -lais_readers-x86 -lpthread
