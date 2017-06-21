@@ -1320,6 +1320,8 @@ int main(int argc, char **argv)
 
 	print_datatype_size();
 
+	fflush(stdin);
+
 	list_device(0);
 
 #ifdef USE_THREADED_TEST
