@@ -288,7 +288,7 @@ void print_log_record(DEV_HND dev)
 	printf(" | [%1d]", dev->log.nfc_uid_len);
 	for (i = 0; i < dev->log.nfc_uid_len; i++)
 		printf(":%02X", dev->log.nfc_uid[i]);
-	for (; i < 7; i++)
+	for (; i < 8; i++)
 		printf("   ");
 
 	printf(" | %s\n", dbg_GMT2str(dev->log.timestamp));
