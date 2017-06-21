@@ -968,15 +968,19 @@ void fw_update(DEV_HND dev)
 
 void config_file_rd(DEV_HND dev)
 {
-	char file_name[1024];
-
 	if (!dev)
 		return;
+
+	puts("Read configuration from the device - to the file");
+
+#if 1
+	puts("DEPRECATED AIS_Config_Send(), AIS_Config_Read()");
+#else
+	char file_name[1024];
 
 	sprintf(file_name, "BaseHD-%s-ID%d-%s.config", dev->SN, dev->ID,
 			time_now_str());
 
-	puts("Read configuration from the device - to the file");
 	printf("Config file - enter for default [%s] : ", file_name);
 	fflush(stdout);
 
@@ -996,13 +1000,18 @@ void config_file_rd(DEV_HND dev)
 	printf("AIS_Config_Read(file: %s)\n", file_name);
 	dev->status = AIS_Config_Read(dev->hnd, pass, file_name);
 	wr_status("AIS_Config_Read");
+#endif
 }
 
 void config_file_wr(DEV_HND dev)
 {
+	puts("Store configuration from file to the device");
+
+#if 1
+	puts("DEPRECATED AIS_Config_Send(), AIS_Config_Read()");
+#else
 	char file_name[1024] = "BaseHD-xxx.config";
 
-	puts("Store configuration from file to the device");
 	printf("Config file - enter for default [%s] : ", file_name);
 	fflush(stdout);
 
@@ -1022,6 +1031,7 @@ void config_file_wr(DEV_HND dev)
 	printf("AIS_Config_Send(file: %s)\n", file_name);
 	dev->status = AIS_Config_Send(dev->hnd, file_name);
 	wr_status("AIS_Config_Send");
+#endif
 }
 
 void debug_info(DEV_HND dev)
