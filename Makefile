@@ -20,6 +20,7 @@ info_ver :
 
 test_folder:
 	-mkdir -p $(OUTDIR)/windows/x86
+	-mkdir -p $(OUTDIR)/windows/x86_64
 	-mkdir -p $(OUTDIR)/linux/x86
 	-mkdir -p $(OUTDIR)/linux/arm
 	-mkdir -p $(OUTDIR)/linux/arm-hf
@@ -70,8 +71,8 @@ win32 : pre_test
 win64 : pre_test
 #	cd src && x86_64-w64-mingw32-gcc -o win64/ais_readers_lib_tester-x86_64.exe -Iinclude -L$(LIBPATH)/windows/x86 src/*.c -lais_readers-x86_64 -static-libgcc -static-libstdc++
 	cd src && x86_64-w64-mingw32-gcc -I../$(LIBPATH)/include -O3 -g0 -Wall -c -fmessage-length=0 *.c
-	x86_64-w64-mingw32-gcc -o $(OUTDIR)/windows/x86/ais_readers_lib_tester-x86_64.exe -L$(LIBPATH)/windows/x86 src/*.o -lais_readers-x86_64 $(WINALIB)
-	echo Tester for 64 bit Windows is created in $(OUTDIR)/windows/x86
+	x86_64-w64-mingw32-gcc -o $(OUTDIR)/windows/x86_64/ais_readers_lib_tester-x86_64.exe -L$(LIBPATH)/windows/x86_64 src/*.o -lais_readers-x86_64 $(WINALIB)
+	echo Tester for 64 bit Windows is created in $(OUTDIR)/windows/x86_64
 
 ####################################################################
 
