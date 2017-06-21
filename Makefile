@@ -22,6 +22,7 @@ test_folder:
 	-mkdir -p $(OUTDIR)/windows/x86
 	-mkdir -p $(OUTDIR)/windows/x86_64
 	-mkdir -p $(OUTDIR)/linux/x86
+	-mkdir -p $(OUTDIR)/linux/x86_64
 	-mkdir -p $(OUTDIR)/linux/arm
 	-mkdir -p $(OUTDIR)/linux/arm-hf
 	-mkdir -p $(OUTDIR)/osx/x86
@@ -56,8 +57,8 @@ lin32 : pre_test
 	echo Tester for 32 bit Linux is created in $(OUTDIR)/linux/x86
 
 lin64 : pre_test
-	gcc -m64 -o $(OUTDIR)/linux/x86/ais_readers_lib_tester-x86_64 -I$(LIBPATH)/include -L$(LIBPATH)/linux/x86 src/*.c -lais_readers-x86_64 -lpthread
-	echo Tester for 64 bit Linux is created in $(OUTDIR)/linux/x86
+	gcc -m64 -o $(OUTDIR)/linux/x86_64/ais_readers_lib_tester-x86_64 -I$(LIBPATH)/include -L$(LIBPATH)/linux/x86_64 src/*.c -lais_readers-x86_64 -lpthread
+	echo Tester for 64 bit Linux is created in $(OUTDIR)/linux/x86_64
 
 #echo Warning: resolving _AIS_List_AddDeviceForCheck@8 by linking to _AIS_List_AddDeviceForCheck
 
