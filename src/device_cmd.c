@@ -35,7 +35,7 @@ void time_get(DEV_HND dev)
 	int offset;
 
 	dev->status = AIS_GetTime(dev->hnd, &current_time, &time_zone, &DST,
-			&offset);
+			&offset, NULL);
 	if (dev->status)
 	{
 		wr_status("AIS_GetTime()");

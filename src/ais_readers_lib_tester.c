@@ -16,7 +16,7 @@
 
 #include "ais_readers_lib_tester.h"
 
-#define MINIMAL_LIB_VERSION			"4.9.10.4"
+#define MINIMAL_LIB_VERSION			"4.13.1"
 
 #define MENU_COL_WIDTH		30
 #define MENU_COL_NUMBER		3
@@ -265,7 +265,7 @@ void time_set(DEV_HND dev)
 
 	// TODO enter from keyboard
 	dev->status = AIS_SetTime(dev->hnd, pass, current_time, timezone, DST,
-			offset);
+			offset, NULL);
 
 	printf("AIS_SetTime(pass:%s)> %s | (tz= %d | dst= %d | offset= %d) %s\n",
 			pass, dl_status2str(dev->status), timezone, DST, offset,
