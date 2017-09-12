@@ -16,7 +16,7 @@
 
 #include "ais_readers_lib_tester.h"
 
-#define MINIMAL_LIB_VERSION			"4.13.1"
+#define MINIMAL_LIB_VERSION			"4.14.2"
 
 #define MENU_COL_WIDTH		30
 #define MENU_COL_NUMBER		3
@@ -504,16 +504,33 @@ void blacklist_read(DEV_HND dev)
 {
 	int list_size = 0;
 	c_string str_black_list = 0;
+	int r;
+	int bl_enum;
 
 	puts("Read black-list :");
 
-	dev->status = AIS_Blacklist_Read(dev->hnd, pass, &str_black_list);
+	printf("Enter blacklist type enumeration [0 for default]: ");
+	fflush(stdout);
+	r = scanf("%d", &bl_enum);
+	if (r != 1)
+		bl_enum = 0;
+
+	if (bl_enum == 0)
+		dev->status = AIS_Blacklist_Read(dev->hnd, pass, &str_black_list);
+	else
+		dev->status = AIS_Blacklist_Read_byType(dev->hnd, pass, &str_black_list,
+				bl_enum);
 
 	if (dev->status == DL_OK)
 		list_size = strlen(str_black_list);
 
-	printf("AIS_Blacklist_Read(pass:%s): black_list(size= %d | %p) > %s\n",
-			pass, list_size, str_black_list, dl_status2str(dev->status));
+	if (bl_enum == 0)
+		printf("AIS_Blacklist_Read(pass:%s): black_list(size= %d | %p) > %s\n",
+				pass, list_size, str_black_list, dl_status2str(dev->status));
+	else
+		printf("AIS_Blacklist_Read_byType(pass:%s): black_list(size= %d | %p) "
+				"bl_type(%d | 0x%0X) > %s\n", pass, list_size, str_black_list,
+				bl_enum, bl_enum, dl_status2str(dev->status));
 
 	if (dev->status || list_size <= 0)
 		return;
@@ -524,6 +541,8 @@ void blacklist_read(DEV_HND dev)
 void blacklist_write(DEV_HND dev)
 {
 	char *bl;
+	int r;
+	int bl_enum;
 
 	puts("Try to write black-list decimal numbers (delimited with anything)");
 	puts("Eg. 2, 102 250;11");
@@ -537,9 +556,24 @@ void blacklist_write(DEV_HND dev)
 		return;
 	}
 
-	dev->status = AIS_Blacklist_Write(dev->hnd, pass, bl);
-	printf("AIS_Blacklist_Write(pass:%s)> %s\n", pass,
-			dl_status2str(dev->status));
+	printf("Enter blacklist type enumeration [0 for default]: ");
+	fflush(stdout);
+	r = scanf("%d", &bl_enum);
+	if (r != 1)
+		bl_enum = 0;
+
+	if (bl_enum == 0)
+		dev->status = AIS_Blacklist_Write(dev->hnd, pass, bl);
+	else
+		dev->status = AIS_Blacklist_Write_byType(dev->hnd, pass, bl, bl_enum);
+
+	printf("AIS_Blacklist_Write");
+	if (bl_enum)
+		printf("_byType");
+	printf("(pass:%s)", pass);
+	if (bl_enum)
+		printf(" bl_type(%d | 0x%0X)", bl_enum, bl_enum);
+	printf(" > %s\n", dl_status2str(dev->status));
 }
 
 void print_log_unread(DEV_HND dev)
