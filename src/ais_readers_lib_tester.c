@@ -240,9 +240,12 @@ void password_set_default(DEV_HND dev)
 
 #define PRNVAR(var) printf( #var " (%d)= %d\n", (int) sizeof(var), (int) var);
 
+#define SETTIME_CUSTOM
+//#define SETTIME_CUSTOM_TIMEZONE
+
 void time_set(DEV_HND dev)
 {
-	uint64_t current_time = time(0);
+	uint64_t current_time;
 
 // FIXME: resource busy
 //	puts("Get before Set Time:");
@@ -263,7 +266,72 @@ void time_set(DEV_HND dev)
 	PRNVAR(offset);
 	puts("..........................");
 
-	// TODO enter from keyboard
+#ifdef SETTIME_CUSTOM
+	int r;
+	struct tm time_in;
+
+	printf("Enter year [0 for current time]: ");
+	fflush(stdout);
+	r = scanf("%d", &time_in.tm_year);
+	if (r != 1)
+		time_in.tm_year = 0;
+
+	if (time_in.tm_year)
+	{
+		time_in.tm_year -= 1900;
+
+		printf("Enter month (1-12): ");
+		fflush(stdout);
+		r = scanf("%d", &time_in.tm_mon);
+
+		time_in.tm_mon--;
+
+		printf("Enter day in month (1-31): ");
+		fflush(stdout);
+		r = scanf("%d", &time_in.tm_mday);
+
+		//----------------------------------------------------------
+#ifdef SETTIME_CUSTOM_TIMEZONE
+
+		printf("Enter time zone (---): ");
+		fflush(stdout);
+		r = scanf("%d", &timezone);
+
+		printf("Enter is day light settings is active (0/1): ");
+		fflush(stdout);
+		r = scanf("%d", &DST);
+
+		printf("Enter time-zone offset [minutes]: ");
+		fflush(stdout);
+		r = scanf("%d", &offset);
+#endif // SETTIME_CUSTOM_TIMEZONE
+		//----------------------------------------------------------
+
+		printf("Enter hour (0-23): ");
+		fflush(stdout);
+		r = scanf("%d", &time_in.tm_hour);
+
+		printf("Enter minute (0-59): ");
+		fflush(stdout);
+		r = scanf("%d", &time_in.tm_min);
+
+		printf("Enter seconds (0-59): ");
+		fflush(stdout);
+		r = scanf("%d", &time_in.tm_sec);
+
+		time_in.tm_isdst = 0;
+
+		//----------------------------------------------------------
+		current_time = mktime(&time_in);
+		//----------------------------------------------------------
+	}
+	else
+#endif // #ifdef SETTIME_CUSTOM
+	{
+		// default time
+		current_time = time(0);
+	}
+
 	dev->status = AIS_SetTime(dev->hnd, pass, current_time, timezone, DST,
 			offset, NULL);
 
