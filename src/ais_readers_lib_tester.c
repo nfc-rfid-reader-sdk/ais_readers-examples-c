@@ -974,7 +974,12 @@ void relay_toggle(DEV_HND dev)
 	get_io_state(dev);
 	//--------------------------------------------------------------
 
-	dev->relay_state = !dev->relay_state;
+//	dev->relay_state = !dev->relay_state;
+	static int t = 0;
+	t++;
+	t %= 4;
+
+	dev->relay_state = t;
 
 	dev->status = AIS_RelayStateSet(dev->hnd, dev->relay_state);
 
