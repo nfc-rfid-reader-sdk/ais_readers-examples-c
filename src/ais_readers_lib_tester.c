@@ -961,6 +961,40 @@ void get_unread_log_one(DEV_HND dev)
 }
 //------------------------------------------------------------------
 
+void get_last_recorded(DEV_HND dev)
+{
+	uint64_t event_time;
+	uint32_t card_type;
+	uint32_t card_id;
+	uint32_t card_action;
+	uint32_t card_status;
+	uint32_t reader_id;
+	uint32_t job_nr;
+	uint32_t nfc_uid_size;
+	uint8_t nfc_uid_data[NFC_UID_MAX_LEN];
+	c_string additional; // reserved
+
+	dev->status = AIS_GetLastNFC(dev->hnd, &event_time, &card_type, &card_id,
+			&card_action, &card_status, &reader_id, &job_nr, &nfc_uid_size,
+			nfc_uid_data, &additional);
+
+	wr_status("AIS_GetLastNFC()");
+
+	if (dev->status)
+		return;
+
+	printf("LAST NFC: event_time= %s, card_type= %d, card_id= %d, "
+			"card_action= %d, card_status= %d, reader_id= %d, "
+			"job_nr= %d, nfc_uid_size= %d", dbg_GMT2str(event_time), card_type,
+			card_id, card_action, card_status, reader_id, job_nr, nfc_uid_size);
+
+	prn_hex(nfc_uid_data, nfc_uid_size);
+
+	// additional;
+}
+
+//------------------------------------------------------------------
+
 void get_io_state(DEV_HND dev)
 {
 	uint32_t intercom;
@@ -1309,6 +1343,7 @@ struct S_TEST_MENU
 { 'D', "Device debug information", debug_info, true },
 { 'R', "Reset Device", reset_device, true },
 { 'z', "TEST DLL ", test_dll, true },
+{ 'Z', "Get last NFC card / QR", get_last_recorded, true },
 
 };
 
