@@ -1160,6 +1160,14 @@ void debug_info(DEV_HND dev)
 
 }
 
+DL_API DL_STATUS AIS_test_main(HND_AIS device, int argc, char **argv);
+
+void test_dll(DEV_HND dev)
+{
+	dev->status = AIS_test_main(dev->hnd, 0, 0);
+	printf("AIS_test_main():> %s\n", dl_status2str(dev->status));
+}
+
 void reset_device(DEV_HND dev)
 {
 	dev->status = AIS_Restart(dev->hnd);
@@ -1292,6 +1300,7 @@ struct S_TEST_MENU
 //
 { 'D', "Device debug information", debug_info, true },
 { 'R', "Reset Device", reset_device, true },
+{ 'z', "TEST DLL ", test_dll, true },
 
 };
 
