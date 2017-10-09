@@ -970,7 +970,9 @@ void get_io_state(DEV_HND dev)
 
 void relay_toggle(DEV_HND dev)
 {
+	printf("BEFORE: relay_toggle");
 	get_io_state(dev);
+	//--------------------------------------------------------------
 
 	dev->relay_state = !dev->relay_state;
 
@@ -979,6 +981,10 @@ void relay_toggle(DEV_HND dev)
 	sprintf(tmpstr, "AIS_RelayStateSet(RELAY= %d)", dev->relay_state);
 
 	wr_status(tmpstr);
+
+	//--------------------------------------------------------------
+	printf("AFTER: relay_toggle");
+	get_io_state(dev);
 }
 
 void lock_open(DEV_HND dev)
