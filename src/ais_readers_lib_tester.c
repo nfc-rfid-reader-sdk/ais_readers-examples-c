@@ -237,8 +237,17 @@ void password_set_default(DEV_HND dev)
 
 //------------------------------------------------------------------
 
-
 #define PRNVAR(var) printf( #var " (%d)= %d\n", (int) sizeof(var), (int) var);
+
+void prn_hex(uint8_t *data, int count)
+{
+	int i;
+
+	printf(" | [%1d]", count);
+
+	for (i = 0; i < count; i++)
+		printf(":%02X", data[i]);
+}
 
 #define SETTIME_CUSTOM
 //#define SETTIME_CUSTOM_TIMEZONE
@@ -353,10 +362,9 @@ void print_log_record(DEV_HND dev)
 	printf(prn_format, dev->log.index, dbg_action2str(dev->log.action),
 			dev->log.reader_id, dev->log.card_id, dev->log.system_id);
 
-	printf(" | [%1d]", dev->log.nfc_uid_len);
-	for (i = 0; i < dev->log.nfc_uid_len; i++)
-		printf(":%02X", dev->log.nfc_uid[i]);
-	for (; i < 8; i++)
+	prn_hex(dev->log.nfc_uid, dev->log.nfc_uid_len);
+
+	for (i = dev->log.nfc_uid_len; i < 8; i++)
 		printf("   ");
 
 	printf(" | %s\n", dbg_GMT2str(dev->log.timestamp));
