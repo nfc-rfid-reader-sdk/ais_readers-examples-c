@@ -984,9 +984,10 @@ void get_last_recorded(DEV_HND dev)
 		return;
 
 	printf("LAST NFC: event_time= %s, card_type= %d, card_id= %d, "
-			"card_action= %d, card_status= %d, reader_id= %d, "
+			"card_action= %s, card_status= %d, reader_id= %d, "
 			"job_nr= %d, nfc_uid_size= %d", dbg_GMT2str(event_time), card_type,
-			card_id, card_action, card_status, reader_id, job_nr, nfc_uid_size);
+			card_id, dbg_action2str(card_action), card_status, reader_id,
+			job_nr, nfc_uid_size);
 
 	prn_hex(nfc_uid_data, nfc_uid_size);
 
