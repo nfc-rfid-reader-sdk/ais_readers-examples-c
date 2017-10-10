@@ -992,6 +992,36 @@ void get_last_recorded(DEV_HND dev)
 	prn_hex(nfc_uid_data, nfc_uid_size);
 
 	// additional;
+
+	puts("\n.\n");
+
+	//--------------------------------------------------------------
+
+	uint32_t office_id;
+	uint32_t qr_data_size;
+	uint8_t qr_data[32];
+
+	dev->status = AIS_GetLastQR(dev->hnd, &event_time, &card_type, &card_id, &office_id,
+			&card_action, &card_status, &reader_id, &job_nr, &qr_data_size,
+			qr_data, &additional);
+
+	wr_status("AIS_GetLastQR()");
+
+	if (dev->status)
+		return;
+
+	printf("LAST QR: event_time= %s, card_type= %d, card_id= %d, "
+			"card_action= %s, card_status= %d, reader_id= %d, "
+			"job_nr= %d, raw_data_size= %d", dbg_GMT2str(event_time), card_type,
+			card_id, dbg_action2str(card_action), card_status, reader_id, job_nr, qr_data_size);
+
+	prn_hex(qr_data, qr_data_size);
+
+	// additional;
+
+	puts("\n.\n");
+
+	//--------------------------------------------------------------
 }
 
 //------------------------------------------------------------------
