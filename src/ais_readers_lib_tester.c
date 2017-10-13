@@ -1373,8 +1373,8 @@ struct S_TEST_MENU
 //
 { 'D', "Device debug information", debug_info, true },
 { 'R', "Reset Device", reset_device, true },
-{ 'z', "TEST DLL ", test_dll, true },
-{ 'Z', "Get last NFC card / QR", get_last_recorded, true },
+{ 'Z', "TEST DLL ", test_dll, true },
+{ 'z', "Get last NFC card / QR", get_last_recorded, true },
 
 };
 
