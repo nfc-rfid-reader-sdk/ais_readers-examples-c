@@ -16,7 +16,7 @@
 
 #include "ais_readers_lib_tester.h"
 
-#define MINIMAL_LIB_VERSION			"4.14.2"
+#define MINIMAL_LIB_VERSION			"4.14.6"
 
 #define MENU_COL_WIDTH		30
 #define MENU_COL_NUMBER		3
