@@ -1129,6 +1129,28 @@ void test_light(DEV_HND dev)
 
 }
 
+void signaling_set(DEV_HND dev)
+{
+	uint32_t sound;
+	uint32_t light;
+	uint32_t output;
+	uint32_t additional;
+
+	puts("Test: AIS_SignalSet()");
+
+#define ENTERVAL(var) printf("Enter value for '" #var "': "); scanf("%u", &var);
+	ENTERVAL(sound);
+	ENTERVAL(light);
+	ENTERVAL(output);
+	ENTERVAL(additional);
+
+	dev->status = AIS_SignalSet(dev->hnd, sound, light, output, additional);
+
+	printf("AIS_SignalSet(sound= 0x%X | light= 0x%X | output= 0x%X"
+			" | additional=  0x%X)> %s\n", sound, light, output, additional,
+			dl_status2str(dev->status));
+}
+
 void fw_update(DEV_HND dev)
 {
 	char fw_name[1024];
@@ -1375,6 +1397,7 @@ struct S_TEST_MENU
 { 'R', "Reset Device", reset_device, true },
 { 'Z', "TEST DLL ", test_dll, true },
 { 'z', "Get last NFC card / QR", get_last_recorded, true },
+{ 'a', "Common signalling", signaling_set, true },
 
 };
 
